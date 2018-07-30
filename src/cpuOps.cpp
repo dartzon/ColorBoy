@@ -258,9 +258,18 @@ void Cpu::op_RLA()
 
 void Cpu::op_JR_r8()
 {
+    IR+=MBR[0];
 }  // 0x18
 void Cpu::op_ADD_HL_DE()
 {
+    HL=HL+DE;
+    const bool bit17 = ((H & 0x80) == 0x80);
+    const bool bit7 = ((L & 0x80) == 0x80);
+    //set register flags
+     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag,0);
+     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag,bit17);
+    setFlagRegisterBit(FlagRegisterBits::eCarryFlag,bit7);
+    
 }  // 0x19
 void Cpu::op_LD_A__DE__()
 {
