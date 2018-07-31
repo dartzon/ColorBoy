@@ -1,0 +1,15 @@
+//
+//  Header.h
+//  colorboy_tests
+//
+//  Created by mac on 31/07/2018.
+//
+
+#ifndef CONST_H_
+#define CONST_H_
+
+#include <string>
+
+static const std::string sROMFolderPath = "@ROMFOLDERPATH@";
+
+#endif

@@ -32,6 +32,9 @@
 #include "mmu.h"
 #include "cpu.h"
 
+/// \brief MemoryType definition
+typedef std::array<uint8_t, GBConfig::sysMemSize> MemoryType;
+
 /// \brief Representation of a Game Boy console with its internal components.
 class Console
 {
@@ -40,7 +43,27 @@ public:
     ///
     /// \param type The Game Boy type to emulate.
     Console(const GBType type) : config(type), m_cpu(m_mmu), m_mmu(m_memory) {}
-
+    
+    /// \brief getMemory
+    ///
+    /// dirty and direct access to internal memory
+    MemoryType& getMemory() {
+        return m_memory;
+    }
+    
+    ///\ brief Run previously loaded program in console
+    void run() {
+        //very basic implementation; may need interruptions handling
+        while(true){
+            m_cpu.run();
+        }
+    }
+    
+    /// \brief Run one instruction
+    void runOnce(){
+        m_cpu.run();
+    }
+    
 private:
     GBConfig config;  ///< Console's configuration.
     Cpu m_cpu;        ///< Console's CPU.
@@ -62,7 +85,7 @@ private:
     // FF80-FFFE   High RAM (HRAM)
     // FFFF        Interrupt Enable Register
     // =============================================================================================
-    std::array<uint8_t, GBConfig::sysMemSize> m_memory;  ///< Console's RAM (64KB memory system).
+    MemoryType m_memory;  ///< Console's RAM (64KB memory system).
 };
 
 #endif /* CONSOLE_H_ */
