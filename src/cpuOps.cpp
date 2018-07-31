@@ -337,6 +337,8 @@ void Cpu::op_JR_NC_r8()
 }  // 0x30
 void Cpu::op_LD_SP_d16()
 {
+    SP = MBR[1];
+    SP |= MBR[0] << 8;
 }  // 0x31
 void Cpu::op_LD__HLminus__A()
 {
@@ -694,27 +696,63 @@ void Cpu::op_AND_A()
 }  // 0xA7
 void Cpu::op_XOR_B()
 {
+    A^=B;
+    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
 }  // 0xA8
 void Cpu::op_XOR_C()
 {
+    A^=C;
+    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
 }  // 0xA9
 void Cpu::op_XOR_D()
 {
+    A^=D;
+    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
 }  // 0xAA
 void Cpu::op_XOR_E()
 {
+    A^=E;
+    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
 }  // 0xAB
 void Cpu::op_XOR_H()
 {
+    A^=H;
+    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
 }  // 0xAC
 void Cpu::op_XOR_L()
 {
+    A^=L;
+    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
 }  // 0xAD
 void Cpu::op_XOR__HL__()
 {
 }  // 0xAE
 void Cpu::op_XOR_A()
 {
+    A^=A;
+    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    
 }  // 0xAF
 void Cpu::op_OR_B()
 {
