@@ -140,9 +140,10 @@ void Cpu::switchState()
 {
     switch (m_cpuCycleState)
     {
-    case eFetch: m_cpuCycleState = InstructionCycleState::eDecode; break;
-    case eDecode: m_cpuCycleState = InstructionCycleState::eExecute; break;
-    case eExecute: m_cpuCycleState = InstructionCycleState::eFetch; break;
+        case InstructionCycleState::eFetch: m_cpuCycleState = InstructionCycleState::eDecode; break;
+        case InstructionCycleState::eDecode: m_cpuCycleState = InstructionCycleState::eExecute; break;
+        case InstructionCycleState::eExecute: m_cpuCycleState = InstructionCycleState::eFetch; break;
+        case InstructionCycleState::eStop : break;
     }
 }
 
