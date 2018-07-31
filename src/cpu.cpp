@@ -46,9 +46,15 @@ void Cpu::waitForInterrupt()
 
 void Cpu::fetch()
 {
+    // Fetch the next instruction from memory into IR.
     IR = fetchNextByte();
+    // Get the length of the fetched instruction.
     const uint8_t opLength = m_opsLengths[IR];
+
+    // Save the current address pointer by PC.
     m_currentInstructionAddr = PC;
+
+    // Advance PC to point to the next instruction in memory.
     PC += opLength;
 
     switchState(InstructionCycleState::eDecode);
@@ -58,8 +64,10 @@ void Cpu::fetch()
 
 void Cpu::decode()
 {
+    // Get the length of the current instruction.
     const uint8_t opLength = m_opsLengths[IR];
 
+    // Fetch the instruction's data (if any) from memory to MBR.
     for (uint8_t pos = 0; pos < opLength - 1; ++pos)
     {
         MBR[pos] = fetchByteFromAddress(m_currentInstructionAddr + pos + 1);
@@ -107,19 +115,35 @@ void Cpu::decode()
     case 0xE9:
     case 0xF0:
     case 0xF2:
-    case 0xFA: MBR[0] = fetchByteFromAddress(MBR[1] | (MBR[0] << 8)); break;
+    case 0xFA:
+        // Fetch data from the memory address stored in MBR.
+        MBR[0] = fetchByteFromAddress(MBR[1] | (MBR[0] << 8));
+        break;
     }
 
-    switchState(InstructionCycleState::eExecute);
+    switchState();
 }
 
 // =================================================================================================
 
 void Cpu::execute()
 {
+    // Call the current CPU instruction's method.
     m_opsFunctions[IR]();
 
-    switchState(InstructionCycleState::eFetch);
+    switchState();
+}
+
+// =================================================================================================
+
+void Cpu::switchState()
+{
+    switch (m_cpuCycleState)
+    {
+    case eFetch: m_cpuCycleState = InstructionCycleState::eDecode; break;
+    case eDecode: m_cpuCycleState = InstructionCycleState::eExecute; break;
+    case eExecute: m_cpuCycleState = InstructionCycleState::eFetch; break;
+    }
 }
 
 // =================================================================================================

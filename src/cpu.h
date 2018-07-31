@@ -353,7 +353,12 @@ private:
     /// \brief Execute a previously fetched and decoded instruction.
     void execute();
 
+    /// \brief Switch the CPU to its next state (Skip the stop state).
+    void switchState();
+
     /// \brief Switch the CPU state. \see InstructionCycleState for possible states.
+    ///
+    /// \param state the next CPU state.
     void switchState(const InstructionCycleState state);
 
     // Memory access methods.
