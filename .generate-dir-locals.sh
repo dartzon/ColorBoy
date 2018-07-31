@@ -1,4 +1,4 @@
-²#!/bin/bash
+#!/bin/bash
 
 _build_mode=$1
 _build_arch=$2
