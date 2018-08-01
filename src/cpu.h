@@ -361,7 +361,7 @@ private:
     /// \param state the next CPU state.
     void switchState(const InstructionCycleState state);
 
-    // Memory access methods.
+    // Memory access methods. ======================================================================
 
     /// \brief Get the next byte pointed by the PC from the from memory.
     uint8_t fetchNextByte();
@@ -383,7 +383,6 @@ private:
     ///
     /// \param addr address of the memory location where the byte will be stored.
     /// \param data the word to store.
-    ///
     void loadWordToAddress(const uint16_t addr, const uint16_t data);
 
     /// \brief Specify an instruction's size in bytes and the number of CPU cycles it takes to
@@ -391,11 +390,56 @@ private:
     ///
     /// \param opLength size in bytes of the instruction to execute.
     /// \param opCycles CPU cycles it takes to execute the instruction.
-    ///
     void setOpLengthAndCycles(const uint8_t opLength, const uint8_t opCycles)
     {
         m_opLength = opLength;
         m_opCycles = opCycles;
+    }
+
+    /// \brief Check if the numeric value (byte or word) has half-carry.
+    ///
+    /// \param data byte or word to check.
+    ///
+    /// \return true if half-carry present, false otherwise.
+    template<typename T>
+    bool hasHalfCarry(const T data) const
+    {
+        static_assert(std::is_integral<T>() == true);
+        static_assert(sizeof(T) <= sizeof(uint16_t));
+
+        if (sizeof(T) == sizeof(uint8_t))
+        {
+            // Check bit 3 for half-carry.
+            return ((data & 0x08) == 0x08);
+        }
+        else
+        {
+            // Check bit 11 for half-carry.
+            return ((data & 0x0800) == 0x0800);
+        }
+    }
+
+    /// \brief Check if the numeric value (byte or word) has carry.
+    ///
+    /// \param data byte or word to check.
+    ///
+    /// \return true if carry present, false otherwise.
+    template<typename T>
+    bool hasCarry(const T data) const
+    {
+        static_assert(std::is_integral<T>() == true);
+        static_assert(sizeof(T) <= sizeof(uint16_t));
+
+        if (sizeof(T) == sizeof(uint8_t))
+        {
+            // Check bit 7 for carry.
+            return ((data & 0x80) == 0x80);
+        }
+        else
+        {
+            // Check bit 15 for carry.
+            return ((data & 0x8000) == 0x8000);
+        }
     }
 
     std::array<uint8_t, 12> m_registers;     ///< Representation of the CPU's 12 internal registers

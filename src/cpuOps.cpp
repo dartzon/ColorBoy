@@ -59,7 +59,7 @@ void Cpu::op_INC_B()
     ++B;
 
     // Set if carry from bit 3.
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, ((B & 0x0F) == 0x0F));
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, hasHalfCarry(B));
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (B == 0));
 }
@@ -88,7 +88,7 @@ void Cpu::op_LD_B_d8()
 
 void Cpu::op_RLCA()
 {
-    const bool bit7 = ((A & 0x80) == 0x80);
+    const bool bit7 = hasCarry(A);
     A <<= 1;
 
     // Old bit 7 to Carry flag.
@@ -112,9 +112,9 @@ void Cpu::op_ADD_HL_BC()
     HL += BC;
 
     // Set if carry from bit 15.
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, ((HL & 0x8000) == 0x8000));
+    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, hasCarry(HL));
     // Set if carry from bit 11.
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, ((HL & 0x0800) == 0x0800));
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, hasHalfCarry(HL));
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
 }
 
@@ -139,7 +139,7 @@ void Cpu::op_INC_C()
     ++C;
 
     // Set if carry from bit 3.
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, ((C & 0x0F) == 0x0F));
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, hasHalfCarry(C));
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (C == 0));
 }
@@ -148,11 +148,11 @@ void Cpu::op_INC_C()
 
 void Cpu::op_DEC_C()
 {
-    const bool setHalfCarryFlag = (C < 1);
+    const bool halfCarryFlag = (C < 1);
     --C;
 
     // Set if borrow from bit 4.
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, setHalfCarryFlag);
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarryFlag);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (C == 0));
 }
@@ -214,7 +214,7 @@ void Cpu::op_INC_D()
     ++D;
 
     // Set if carry from bit 3.
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, ((D & 0x0F) == 0x0F));
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, hasHalfCarry(D));
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (D == 0));
 }
@@ -243,7 +243,7 @@ void Cpu::op_LD_D_d8()
 
 void Cpu::op_RLA()
 {
-    const bool bit7 = ((A & 0x80) == 0x80);
+    const bool bit7 = hasCarry(A);
     A <<= 1;
     A |= static_cast<uint8_t>(checkFlagRegisterBit(FlagRegisterBits::eCarryFlag));
 
@@ -265,16 +265,43 @@ void Cpu::op_JR_r8()
 
 void Cpu::op_ADD_HL_DE()
 {
-}  // 0x19
+    HL += DE;
+
+    // Set if carry from bit 15.
+    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, hasCarry(HL));
+    // Set if carry from bit 11.
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, hasHalfCarry(HL));
+    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+}
+
+// =================================================================================================
+
 void Cpu::op_LD_A__DE__()
 {
-}  // 0x1A
+    A = fetchByteFromAddress(DE);
+}
+
+// =================================================================================================
+
 void Cpu::op_DEC_DE()
 {
-}  // 0x1B
+    --DE;
+}
+
+// =================================================================================================
+
 void Cpu::op_INC_E()
 {
-}  // 0x1C
+    ++E;
+
+    // Set if carry from bit 3.
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, ((E & 0x0F) == 0x0F));
+    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (E == 0));
+}
+
+// =================================================================================================
+
 void Cpu::op_DEC_E()
 {
 }  // 0x1D

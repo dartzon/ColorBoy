@@ -26,6 +26,9 @@
 // Local includes.
 #include "cpu.h"
 
+// std includes.
+#include <type_traits>
+
 Cpu::Cpu(Mmu& mmu) :
     A(m_registers[1]), B(m_registers[3]), C(m_registers[2]), D(m_registers[5]), E(m_registers[4]),
     F(m_registers[0]), H(m_registers[7]), L(m_registers[6]), AF(reinterpret_cast<uint16_t&>(F)),
@@ -140,9 +143,10 @@ void Cpu::switchState()
 {
     switch (m_cpuCycleState)
     {
-    case eFetch: m_cpuCycleState = InstructionCycleState::eDecode; break;
-    case eDecode: m_cpuCycleState = InstructionCycleState::eExecute; break;
-    case eExecute: m_cpuCycleState = InstructionCycleState::eFetch; break;
+    case InstructionCycleState::eFetch: m_cpuCycleState = InstructionCycleState::eDecode; break;
+    case InstructionCycleState::eDecode: m_cpuCycleState = InstructionCycleState::eExecute; break;
+    case InstructionCycleState::eExecute:
+    case InstructionCycleState::eStop: m_cpuCycleState = InstructionCycleState::eFetch; break;
     }
 }
 
