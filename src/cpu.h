@@ -401,21 +401,23 @@ private:
     /// \param data byte or word to check.
     ///
     /// \return true if half-carry present, false otherwise.
-    template<typename T>
-    bool hasHalfCarry(const T data) const
+    template<typename T, typename U = uint8_t>
+    bool hasHalfCarry(const T data1, const U data2 = 1) const
     {
         static_assert(std::is_integral<T>() == true);
+        static_assert(std::is_integral<U>() == true);
         static_assert(sizeof(T) <= sizeof(uint16_t));
+        static_assert(sizeof(U) <= sizeof(uint16_t));
 
         if (sizeof(T) == sizeof(uint8_t))
         {
             // Check bit 3 for half-carry.
-            return ((data & 0x08) == 0x08);
+            return ((((data1 & 0xF) + (data2 & 0xF)) & 0x10) == 0x10);
         }
         else
         {
             // Check bit 11 for half-carry.
-            return ((data & 0x0800) == 0x0800);
+            return ((((data1 & 0x0FFF) + (data2 & 0x0FFF)) & 0x1000) == 0x1000);
         }
     }
 
@@ -424,22 +426,15 @@ private:
     /// \param data byte or word to check.
     ///
     /// \return true if carry present, false otherwise.
-    template<typename T>
-    bool hasCarry(const T data) const
+    template<typename T, typename U = uint8_t>
+    bool hasCarry(const T data1, const U data2 = 1) const
     {
         static_assert(std::is_integral<T>() == true);
+        static_assert(std::is_integral<U>() == true);
         static_assert(sizeof(T) <= sizeof(uint16_t));
+        static_assert(sizeof(U) <= sizeof(uint16_t));
 
-        if (sizeof(T) == sizeof(uint8_t))
-        {
-            // Check bit 7 for carry.
-            return ((data & 0x80) == 0x80);
-        }
-        else
-        {
-            // Check bit 15 for carry.
-            return ((data & 0x8000) == 0x8000);
-        }
+        return ((data1 + data2) > std::numeric_limits<T>::max());
     }
 
     std::array<uint8_t, 12> m_registers;     ///< Representation of the CPU's 12 internal registers
