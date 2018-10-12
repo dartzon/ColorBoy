@@ -412,7 +412,7 @@ private:
         if (sizeof(T) == sizeof(uint8_t))
         {
             // Check bit 3 for half-carry.
-            return ((((data1 & 0xF) + (data2 & 0xF)) & 0x10) == 0x10);
+            return ((((data1 & 0x0F) + (data2 & 0x0F)) & 0x10) == 0x10);
         }
         else
         {
@@ -434,7 +434,28 @@ private:
         static_assert(sizeof(T) <= sizeof(uint16_t));
         static_assert(sizeof(U) <= sizeof(uint16_t));
 
-        return ((data1 + data2) > std::numeric_limits<T>::max());
+        if (sizeof(T) == sizeof(uint8_t))
+        {
+            // Check bit 3 for half-carry.
+            return (((data1 + data2) & 0x100) == 0x100);
+        }
+        else
+        {
+            // Check bit 11 for half-carry.
+            return (((data1 + data2) & 0x10000) == 0x10000);
+        }
+    }
+
+    bool hasHalfBorrow(const uint8_t data1, const uint8_t data2 = 1) const
+    {
+        // Check bit 4 for half-borrow.
+        return ((data1 & 0x0F) < (data2 & 0x0F));
+    }
+
+    bool hasBorrow(const uint8_t data1, const uint8_t data2 = 1) const
+    {
+        // Check for borrow.
+        return ((data1 < data2);
     }
 
     std::array<uint8_t, 12> m_registers;     ///< Representation of the CPU's 12 internal registers
