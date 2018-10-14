@@ -267,7 +267,7 @@ void Cpu::op_RLA()
 
 void Cpu::op_JR_r8()
 {
-    PC += MBR[0];
+    PC += static_cast<const int8_t>(MBR[0]);
 }
 
 // =================================================================================================
@@ -351,9 +351,9 @@ void Cpu::op_RRA()
 
 void Cpu::op_JR_NZ_r8()
 {
-    const uint8_t jumpFactor = static_cast<uint8_t>(
+    const uint8_t jumpFactor = static_cast<const uint8_t>(
         checkFlagRegisterBit(FlagRegisterBits::eZeroFlag));
-    PC += MBR[0] * !jumpFactor;
+    PC += static_cast<const int8_t>(MBR[0]) * !jumpFactor;
 }
 
 // =================================================================================================
@@ -423,9 +423,9 @@ void Cpu::op_DAA()
 
 void Cpu::op_JR_Z_r8()
 {
-    const uint8_t jumpFactor = static_cast<uint8_t>(
+    const uint8_t jumpFactor = static_cast<const uint8_t>(
         checkFlagRegisterBit(FlagRegisterBits::eZeroFlag));
-    PC += MBR[0] * jumpFactor;
+    PC += static_cast<const int8_t>(MBR[0]) * jumpFactor;
 }
 
 // =================================================================================================
@@ -506,9 +506,9 @@ void Cpu::op_CPL()
 
 void Cpu::op_JR_NC_r8()
 {
-    const uint8_t jumpFactor = static_cast<uint8_t>(
+    const uint8_t jumpFactor = static_cast<const uint8_t>(
         checkFlagRegisterBit(FlagRegisterBits::eCarryFlag));
-    PC += MBR[0] * !jumpFactor;
+    PC += static_cast<const int8_t>(MBR[0]) * !jumpFactor;
 }
 
 // =================================================================================================
@@ -587,9 +587,9 @@ void Cpu::op_SCF()
 
 void Cpu::op_JR_C_r8()
 {
-    const uint8_t jumpFactor = static_cast<uint8_t>(
+    const uint8_t jumpFactor = static_cast<const uint8_t>(
         checkFlagRegisterBit(FlagRegisterBits::eCarryFlag));
-    PC += MBR[0] * jumpFactor;
+    PC += static_cast<const int8_t>(MBR[0]) * jumpFactor;
 }
 
 // =================================================================================================
@@ -2446,6 +2446,15 @@ void Cpu::op_RET_C()
 
 void Cpu::op_RETI()
 {
+    const uint8_t lByte = fetchByteFromAddress(SP);
+    const uint8_t hByte = fetchByteFromAddress(SP + 1);
+    SP += 2;
+
+    const uint16_t addr = cbutil::combineTowBytes(lByte, hByte);
+
+    PC = addr;
+
+    enableInterrupts();
 }
 
 // =================================================================================================
