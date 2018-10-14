@@ -329,8 +329,8 @@ private:
 
     /// \brief Set flag register.
     ///
-    /// \param statuses New bit values.
-    void setFlagRegisterBytes(const uint8_t statuses) { flagReg = statuses; }
+    /// \param status New bit values.
+    void setFlagRegisterBytes(const uint8_t status) { flagReg = status; }
 
     /// \brief Representation of the CPU state.
     enum class InstructionCycleState : uint8_t
@@ -340,6 +340,12 @@ private:
         eDecode,
         eExecute
     };
+
+    /// \brief Enable the CPU's interrupts.
+    void enableInterrupts() { m_interruptsEnabled = true; }
+
+    /// \brief Disaable the CPU's interrupts.
+    void disableInterrupts() { m_interruptsEnabled = false; }
 
     /// \brief Stop the CPU until an interrupt occurs.
     void waitForInterrupt();
@@ -396,7 +402,7 @@ private:
         m_opCycles = opCycles;
     }
 
-    /// \brief Check if the numeric value (byte or word) has half-carry.
+    /// \brief Check if the addition of two numeric values generates a half-carry.
     ///
     /// \param data byte or word to check.
     ///
@@ -421,7 +427,7 @@ private:
         }
     }
 
-    /// \brief Check if the numeric value (byte or word) has carry.
+    /// \brief Check if the addition of two numeric values generates a carry.
     ///
     /// \param data byte or word to check.
     ///
@@ -446,16 +452,28 @@ private:
         }
     }
 
+    /// Check if the substraction of two numeric values generates a half-borrow (borrow from bit 4).
+    ///
+    /// \param data1 first byte.
+    /// \param data2 second byte.
+    ///
+    /// \return true if half-borrow present, false otherwise.
     bool hasHalfBorrow(const uint8_t data1, const uint8_t data2 = 1) const
     {
         // Check bit 4 for half-borrow.
         return ((data1 & 0x0F) < (data2 & 0x0F));
     }
 
+    /// Check if the substraction of two numeric values generates a borrow (borrow from bit 16).
+    ///
+    /// \param data1 first byte.
+    /// \param data2 second byte.
+    ///
+    /// \return true if borrow present, false otherwise.
     bool hasBorrow(const uint8_t data1, const uint8_t data2 = 1) const
     {
         // Check for borrow.
-        return ((data1 < data2);
+        return (data1 < data2);
     }
 
     std::array<uint8_t, 12> m_registers;     ///< Representation of the CPU's 12 internal registers
@@ -463,9 +481,20 @@ private:
     uint16_t &AF, &BC, &DE, &HL, &SP, &PC;  ///< References to each individual 16 bits CPU register.
     mutable std::bitset<8> flagReg;  ///< Representation of the flag register as a std::bitset.
 
-    uint8_t IR;                         ///< Instruction register.
-    uint8_t MBR[2];                     ///< Memory buffer register.
+    uint8_t IR;      ///< Instruction register.
+    uint8_t MBR[2];  ///< Memory buffer register.
+
     uint16_t m_currentInstructionAddr;  ///< The address in memory of the current instruction.
+
+    Mmu& m_mmu;  ///< Memory management unit.
+
+    uint8_t m_opLength = 0;   ///< Current instruction length.
+    uint8_t m_opCycles = 0;   ///< Current instruction CPU cycles.
+    uint8_t m_cpuCycles = 0;  ///< Total CPU cycles.
+
+    InstructionCycleState m_cpuCycleState;  ///< Current CPU cycle state.
+
+    bool m_interruptsEnabled;
 
     ///< Length in byte of all the CPU's instructions.
     const std::array<uint8_t, 256> m_opsLengths =
@@ -737,14 +766,6 @@ private:
          std::function<void()>(nullptr),
          std::bind(&Cpu::op_CP_d8, this),
          std::bind(&Cpu::op_RST_38H, this)};
-
-    Mmu& m_mmu;  ///< Memory management unit.
-
-    uint8_t m_opLength = 0;   ///< Current instruction length.
-    uint8_t m_opCycles = 0;   ///< Current instruction CPU cycles.
-    uint8_t m_cpuCycles = 0;  ///< Total CPU cycles.
-
-    InstructionCycleState m_cpuCycleState;  ///< Current CPU cycle state.
 };
 
 #endif /* CPU_H_ */
