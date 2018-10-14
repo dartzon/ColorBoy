@@ -37,7 +37,8 @@ Cpu::Cpu(Mmu& mmu) :
     F(m_registers[0]), H(m_registers[7]), L(m_registers[6]), AF(reinterpret_cast<uint16_t&>(F)),
     BC(reinterpret_cast<uint16_t&>(C)), DE(reinterpret_cast<uint16_t&>(E)),
     HL(reinterpret_cast<uint16_t&>(L)), SP(*reinterpret_cast<uint16_t*>(&H + 8)),
-    PC(*reinterpret_cast<uint16_t*>(&H + 24)), m_mmu(mmu), m_interruptsEnabled(true)
+    PC(*reinterpret_cast<uint16_t*>(&H + 24)), m_mmu(mmu), m_interruptsEnabled(true),
+    m_inPrefixCBOp(false)
 {
     PC = 0x0;
 }

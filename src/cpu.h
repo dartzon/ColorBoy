@@ -48,8 +48,9 @@ public:
     void run();
 
 private:
+    // =============================================================================================
     // Gameboy CPU (Sharp LR35902) instruction set.
-
+    // =============================================================================================
     void op_NOP();               ///< opcode: 0x00
     void op_LD_BC_d16();         ///< opcode: 0x01
     void op_LD__BC__A();         ///< opcode: 0x02
@@ -296,6 +297,10 @@ private:
     void op_CP_d8();             ///< opcode: 0xFE
     void op_RST_38H();           ///< opcode: 0xFF
 
+    // =============================================================================================
+    //  Prefix CB instruction set.
+    // =============================================================================================
+
     /// \brief Representation of the four usable bits of the flag register.
     enum class FlagRegisterBits : uint8_t
     {
@@ -494,7 +499,9 @@ private:
 
     InstructionCycleState m_cpuCycleState;  ///< Current CPU cycle state.
 
-    bool m_interruptsEnabled;
+    bool m_interruptsEnabled;  ///< Are interrupts enabled?
+
+    bool m_inPrefixCBOp;  ///< Is a prefix CB op running?
 
     ///< Length in byte of all the CPU's instructions.
     const std::array<uint8_t, 256> m_opsLengths =
