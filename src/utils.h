@@ -28,6 +28,9 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+// std includes.
+#include <cstdint>
+
 #ifdef COLORBOY_DEBUG
 
 ////////////////////////////////////////////////////////
@@ -77,5 +80,33 @@ inline void logMessage(const char* fctName, const int lineNum, const char* msg)
 #define NOTYETIMPLEMENTED()
 
 #endif
+
+// =================================================================================================
+
+namespace cbutil
+{
+/// \brief Combine two bytes into one word.
+///
+/// \param lByte Low byte.
+/// \param hByte High byte.
+///
+/// \return A word where byte1 and byte2 are combined.
+inline uint16_t combineTowBytes(const uint8_t lByte, const uint8_t hByte)
+{
+    return (hByte << 8) | lByte;
+}
+
+/// \brief Split a word into two bytes.
+///
+/// \param word The word to split.
+/// \param[out] lByte Low byte
+/// \param[out] hByte High byte.
+inline void splitWord(const uint16_t word, uint8_t& lByte, uint8_t& hByte)
+{
+    lByte = word & 0xFF;
+    hByte = word >> 8;
+}
+
+}  // namespace cbutil
 
 #endif /* UTILS_H_ */
