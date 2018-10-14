@@ -31,16 +31,16 @@
 #include <cstdint>
 
 // From Nintendo's website:
-// +---------------------------+---------------------------+------------------------+
-// | Game Boy                  | Game Boy Pocket           | Game Boy Color         |
-// +---------------------------+---------------------------+------------------------+
-// | Arch: 8 Bit               | Arch: 8 Bit               | Arch: 8 Bit            |
-// | Clock frequency: 4.19 MHz | Clock frequency: 4.19 MHz | Clock frequency: 8 MHz |
-// | RAM: 8 Kbytes             | RAM: 8 Kbytes             | RAM: 32 Kbytes         |
-// +---------------------------+---------------------------+------------------------+
+// +---------------------------+---------------------------+--------------------------+
+// | Game Boy                  | Game Boy Pocket           | Game Boy Color           |
+// +---------------------------+---------------------------+--------------------------+
+// | Arch: 8 Bit               | Arch: 8 Bit               | Arch: 8 Bit              |
+// | Clock frequency: 4.19 MHz | Clock frequency: 4.19 MHz | Clock frequency: 8.4 MHz |
+// | RAM: 8 Kbytes             | RAM: 8 Kbytes             | RAM: 32 Kbytes           |
+// +---------------------------+---------------------------+--------------------------+
 
 /// \brief Game Boy type.
-enum class GBType : uint8_t
+enum class GBType : uint16_t
 {
     GBT_gb = 0,  ///< Original Game Boy (GameBoy Classic).
     GBT_gbp,     ///< Game Boy Pocket/GameBoy Light.
@@ -61,22 +61,22 @@ struct GBConfig
         case GBType::GBT_gb:
         case GBType::GBT_gbp:
             clockFrequency = 4;
-            wRAMSize = 8;
-            vRAMSize = 8;
+            wRAMSize = 8000;
+            vRAMSize = 8000;
             break;
 
         case GBType::GBT_gbc:
             clockFrequency = 8;
-            wRAMSize = 32;
-            vRAMSize = 16;
+            wRAMSize = 3200;
+            vRAMSize = 1600;
             break;
         }
     }
 
     static constexpr uint32_t sysMemSize = 65536;  ///< Gameboy CPU has 16-bit address bus (2^16).
-    mutable uint8_t clockFrequency;                ///< CPU clock frequency.
-    mutable uint8_t wRAMSize;                      ///< Working ram size.
-    mutable uint8_t vRAMSize;                      ///< Video ram size.
+    mutable uint8_t clockFrequency;                ///< CPU clock frequency in MHz.
+    mutable uint16_t wRAMSize;                     ///< Working ram size in Byte.
+    mutable uint16_t vRAMSize;                     ///< Video ram size in Byte.
 };
 
 #endif /* CONFIG_H_ */
