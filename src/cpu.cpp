@@ -55,8 +55,18 @@ void Cpu::fetch()
 {
     // Fetch the next instruction from memory into IR.
     IR = fetchNextByte();
+
     // Get the length of the fetched instruction.
-    const uint8_t opLength = m_opsLengths[IR];
+    uint8_t opLength = 0;
+    if (m_inPrefixCBOp == false)
+    {
+        opLength = m_opsLengths[IR];
+    }
+    else
+    {
+        // Prefix CB instructions are all 2 bytes long.
+        opLength = 2;
+    }
 
     // Save the current address pointer by PC.
     m_currentInstructionAddr = PC;
@@ -136,7 +146,16 @@ void Cpu::decode()
 void Cpu::execute()
 {
     // Call the current CPU instruction's method.
-    m_opsFunctions[IR]();
+
+    if (m_inPrefixCBOp == false)
+    {
+        m_opsFunctions[IR]();
+    }
+    else
+    {
+        m_inPrefixCBOp = false;
+        m_opsPrefixCBFunctions[IR]();
+    }
 
     switchState();
 }
