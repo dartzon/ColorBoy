@@ -28,86 +28,185 @@
 
 #include "utils.h"
 
-void Cpu::op_RLC_B()
+void Cpu::execRLC(uint8_t& data)
 {
     // Save bit 7.
-    const bool bit7 = ((B & 0x80) == 0x80);
-    B <<= 1;
+    const bool bit7 = ((data & 0x80) == 0x80);
+    data <<= 1;
 
     setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (B == 0));
+    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (data == 0));
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+}
+
+// =================================================================================================
+
+void Cpu::execRRC(uint8_t& data)
+{
+    const bool bit0 = ((data & 0x01) == 0x01);
+    data >>= 1;
+
+    // Old bit 0 to Carry flag.
+    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
+    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (data == 0));
+    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+}
+
+// =================================================================================================
+
+void Cpu::execRL(uint8_t& data)
+{
+    const bool bit7 = hasCarry(data);
+    data <<= 1;
+    data |= static_cast<uint8_t>(checkFlagRegisterBit(FlagRegisterBits::eCarryFlag));
+
+    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
+    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (data == 0));
+    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+}
+
+// =================================================================================================
+
+void Cpu::execRR(uint8_t& data)
+{
+    const bool bit0 = ((data & 0x01) == 0x01);
+    data >>= 1;
+    data |= static_cast<uint8_t>(checkFlagRegisterBit(FlagRegisterBits::eCarryFlag)) << 7;
+
+    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
+    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (data == 0));
+    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+}
+
+// =================================================================================================
+
+void Cpu::execSLA(uint8_t& data)
+{
+    const bool bit7 = (data & 0x80) == 0x80;
+    data <<= 1;
+
+    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
+    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (data == 0));
+    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+}
+
+// =================================================================================================
+
+void Cpu::execSRA(uint8_t& data)
+{
+    const bool bit0 = (data & 0x01) == 0x01;
+    const bool bit7 = (data & 0x80) == 0x80;
+
+    data >>= 1;
+
+    if (bit7 == true)
+    {
+        data |= 0x80;
+    }
+
+    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
+    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (data == 0));
+    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+}
+
+// =================================================================================================
+
+void Cpu::execSWAP(uint8_t& data)
+{
+    data = ((data & 0x0F) << 4) | (data >> 4);
+
+    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (data == 0));
+    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+}
+
+// =================================================================================================
+
+void Cpu::execSRL(uint8_t& data)
+{
+    const bool bit0 = (data & 0x01) == 0x01;
+
+    data >>= 1;
+
+    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
+    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (data == 0));
+    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+}
+
+// =================================================================================================
+
+void Cpu::execBIT(const uint8_t data, const uint8_t bitPos)
+{
+    const uint8_t mask = 0x01 << bitPos;
+    const bool isBitSet = (data & mask) == mask;
+
+    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
+    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+}
+
+// =================================================================================================
+
+void Cpu::execRES(uint8_t& data, const uint8_t bitPos)
+{
+    data &= ~(0x01 << bitPos);
+}
+
+// =================================================================================================
+
+void Cpu::execSET(uint8_t& data, const uint8_t bitPos)
+{
+    data |= (0x01 << bitPos);
+}
+
+// =================================================================================================
+
+void Cpu::op_RLC_B()
+{
+    execRLC(B);
 }
 
 // =================================================================================================
 
 void Cpu::op_RLC_C()
 {
-    // Save bit 7.
-    const bool bit7 = ((C & 0x80) == 0x80);
-    C <<= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (C == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRLC(C);
 }
 
 // =================================================================================================
 
 void Cpu::op_RLC_D()
 {
-    // Save bit 7.
-    const bool bit7 = ((D & 0x80) == 0x80);
-    D <<= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (D == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRLC(D);
 }
 
 // =================================================================================================
 
 void Cpu::op_RLC_E()
 {
-    // Save bit 7.
-    const bool bit7 = ((E & 0x80) == 0x80);
-    E <<= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (E == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRLC(E);
 }
 
 // =================================================================================================
 
 void Cpu::op_RLC_H()
 {
-    // Save bit 7.
-    const bool bit7 = ((H & 0x80) == 0x80);
-    H <<= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (H == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRLC(H);
 }
 
 // =================================================================================================
 
 void Cpu::op_RLC_L()
 {
-    // Save bit 7.
-    const bool bit7 = ((L & 0x80) == 0x80);
-    L <<= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (L == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRLC(L);
 }
 
 // =================================================================================================
@@ -116,113 +215,58 @@ void Cpu::op_RLC__HL__()
 {
     uint8_t byte = fetchByteFromAddress(HL);
 
-    // Save bit 7.
-    const bool bit7 = ((byte & 0x80) == 0x80);
-    byte <<= 1;
-    loadByteToAddress(HL, byte);
+    execRLC(byte);
 
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (byte == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    loadByteToAddress(HL, byte);
 }
 
 // =================================================================================================
 
 void Cpu::op_RLC_A()
 {
-    // Save bit 7.
-    const bool bit7 = ((A & 0x80) == 0x80);
-    A <<= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRLC(A);
 }
 
 // =================================================================================================
 
 void Cpu::op_RRC_B()
 {
-    const bool bit0 = ((B & 0x01) == 0x01);
-    B >>= 1;
-
-    // Old bit 0 to Carry flag.
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (B == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRRC(B);
 }
 
 // =================================================================================================
 
 void Cpu::op_RRC_C()
 {
-    const bool bit0 = ((C & 0x01) == 0x01);
-    C >>= 1;
-
-    // Old bit 0 to Carry flag.
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (C == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRRC(C);
 }
 
 // =================================================================================================
 
 void Cpu::op_RRC_D()
 {
-    const bool bit0 = ((D & 0x01) == 0x01);
-    D >>= 1;
-
-    // Old bit 0 to Carry flag.
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (D == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRRC(D);
 }
 
 // =================================================================================================
 
 void Cpu::op_RRC_E()
 {
-    const bool bit0 = ((E & 0x01) == 0x01);
-    E >>= 1;
-
-    // Old bit 0 to Carry flag.
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (E == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRRC(E);
 }
 
 // =================================================================================================
 
 void Cpu::op_RRC_H()
 {
-    const bool bit0 = ((H & 0x01) == 0x01);
-    H >>= 1;
-
-    // Old bit 0 to Carry flag.
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (H == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRRC(H);
 }
 
 // =================================================================================================
 
 void Cpu::op_RRC_L()
 {
-    const bool bit0 = ((L & 0x01) == 0x01);
-    L >>= 1;
-
-    // Old bit 0 to Carry flag.
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (L == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRRC(L);
 }
 
 // =================================================================================================
@@ -231,114 +275,58 @@ void Cpu::op_RRC__HL__()
 {
     uint8_t byte = fetchByteFromAddress(HL);
 
-    const bool bit0 = ((byte & 0x01) == 0x01);
-    byte >>= 1;
+    execRRC(byte);
 
     loadByteToAddress(HL, byte);
-
-    // Old bit 0 to Carry flag.
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (byte == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
 }
 
 // =================================================================================================
 
 void Cpu::op_RRC_A()
 {
-    const bool bit0 = ((A & 0x01) == 0x01);
-    A >>= 1;
-
-    // Old bit 0 to Carry flag.
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRRC(A);
 }
 
 // =================================================================================================
 
 void Cpu::op_RL_B()
 {
-    const bool bit7 = hasCarry(B);
-    B <<= 1;
-    B |= static_cast<uint8_t>(checkFlagRegisterBit(FlagRegisterBits::eCarryFlag));
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (B == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRL(B);
 }
 
 // =================================================================================================
 
 void Cpu::op_RL_C()
 {
-    const bool bit7 = hasCarry(C);
-    C <<= 1;
-    C |= static_cast<uint8_t>(checkFlagRegisterBit(FlagRegisterBits::eCarryFlag));
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (C == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRL(C);
 }
 
 // =================================================================================================
 
 void Cpu::op_RL_D()
 {
-    const bool bit7 = hasCarry(D);
-    D <<= 1;
-    D |= static_cast<uint8_t>(checkFlagRegisterBit(FlagRegisterBits::eCarryFlag));
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (D == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRL(D);
 }
 
 // =================================================================================================
 
 void Cpu::op_RL_E()
 {
-    const bool bit7 = hasCarry(E);
-    E <<= 1;
-    E |= static_cast<uint8_t>(checkFlagRegisterBit(FlagRegisterBits::eCarryFlag));
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (E == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRL(E);
 }
 
 // =================================================================================================
 
 void Cpu::op_RL_H()
 {
-    const bool bit7 = hasCarry(H);
-    H <<= 1;
-    H |= static_cast<uint8_t>(checkFlagRegisterBit(FlagRegisterBits::eCarryFlag));
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (H == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRL(H);
 }
 
 // =================================================================================================
 
 void Cpu::op_RL_L()
 {
-    const bool bit7 = hasCarry(L);
-    L <<= 1;
-    L |= static_cast<uint8_t>(checkFlagRegisterBit(FlagRegisterBits::eCarryFlag));
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (L == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRL(L);
 }
 
 // =================================================================================================
@@ -347,114 +335,58 @@ void Cpu::op_RL__HL__()
 {
     uint8_t byte = fetchByteFromAddress(HL);
 
-    const bool bit7 = hasCarry(byte);
-    byte <<= 1;
-    byte |= static_cast<uint8_t>(checkFlagRegisterBit(FlagRegisterBits::eCarryFlag));
+    execRL(byte);
 
     loadByteToAddress(HL, byte);
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (byte == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
 }
 
 // =================================================================================================
 
 void Cpu::op_RL_A()
 {
-    const bool bit7 = hasCarry(A);
-    A <<= 1;
-    A |= static_cast<uint8_t>(checkFlagRegisterBit(FlagRegisterBits::eCarryFlag));
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRL(A);
 }
 
 // =================================================================================================
 
 void Cpu::op_RR_B()
 {
-    const bool bit0 = ((B & 0x01) == 0x01);
-    B >>= 1;
-    B |= static_cast<uint8_t>(checkFlagRegisterBit(FlagRegisterBits::eCarryFlag)) << 7;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (B == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRR(B);
 }
 
 // =================================================================================================
 
 void Cpu::op_RR_C()
 {
-    const bool bit0 = ((C & 0x01) == 0x01);
-    C >>= 1;
-    C |= static_cast<uint8_t>(checkFlagRegisterBit(FlagRegisterBits::eCarryFlag)) << 7;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (C == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRR(C);
 }
 
 // =================================================================================================
 
 void Cpu::op_RR_D()
 {
-    const bool bit0 = ((D & 0x01) == 0x01);
-    D >>= 1;
-    D |= static_cast<uint8_t>(checkFlagRegisterBit(FlagRegisterBits::eCarryFlag)) << 7;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (D == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRR(D);
 }
 
 // =================================================================================================
 
 void Cpu::op_RR_E()
 {
-    const bool bit0 = ((E & 0x01) == 0x01);
-    E >>= 1;
-    E |= static_cast<uint8_t>(checkFlagRegisterBit(FlagRegisterBits::eCarryFlag)) << 7;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (E == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRR(E);
 }
 
 // =================================================================================================
 
 void Cpu::op_RR_H()
 {
-    const bool bit0 = ((H & 0x01) == 0x01);
-    H >>= 1;
-    H |= static_cast<uint8_t>(checkFlagRegisterBit(FlagRegisterBits::eCarryFlag)) << 7;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (H == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRR(H);
 }
 
 // =================================================================================================
 
 void Cpu::op_RR_L()
 {
-    const bool bit0 = ((L & 0x01) == 0x01);
-    L >>= 1;
-    L |= static_cast<uint8_t>(checkFlagRegisterBit(FlagRegisterBits::eCarryFlag)) << 7;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (L == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRR(L);
 }
 
 // =================================================================================================
@@ -463,108 +395,58 @@ void Cpu::op_RR__HL__()
 {
     uint8_t byte = fetchByteFromAddress(HL);
 
-    const bool bit0 = ((byte & 0x01) == 0x01);
-    byte >>= 1;
-    byte |= static_cast<uint8_t>(checkFlagRegisterBit(FlagRegisterBits::eCarryFlag)) << 7;
+    execRR(byte);
 
     loadByteToAddress(HL, byte);
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (byte == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
 }
 
 // =================================================================================================
 
 void Cpu::op_RR_A()
 {
-    const bool bit0 = ((A & 0x01) == 0x01);
-    A >>= 1;
-    A |= static_cast<uint8_t>(checkFlagRegisterBit(FlagRegisterBits::eCarryFlag)) << 7;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execRR(A);
 }
 
 // =================================================================================================
 
 void Cpu::op_SLA_B()
 {
-    const bool bit7 = (B & 0x80) == 0x80;
-    B <<= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (B == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSLA(B);
 }
 
 // =================================================================================================
 
 void Cpu::op_SLA_C()
 {
-    const bool bit7 = (C & 0x80) == 0x80;
-    C <<= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (C == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSLA(C);
 }
 
 // =================================================================================================
 
 void Cpu::op_SLA_D()
 {
-    const bool bit7 = (D & 0x80) == 0x80;
-    D <<= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (D == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSLA(D);
 }
 
 // =================================================================================================
 
 void Cpu::op_SLA_E()
 {
-    const bool bit7 = (E & 0x80) == 0x80;
-    E <<= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (E == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSLA(E);
 }
 
 // =================================================================================================
 
 void Cpu::op_SLA_H()
 {
-    const bool bit7 = (H & 0x80) == 0x80;
-    H <<= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (H == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSLA(H);
 }
 
 // =================================================================================================
 
 void Cpu::op_SLA_L()
 {
-    const bool bit7 = (L & 0x80) == 0x80;
-    L <<= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (L == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSLA(L);
 }
 
 // =================================================================================================
@@ -573,148 +455,58 @@ void Cpu::op_SLA__HL__()
 {
     uint8_t byte = fetchByteFromAddress(HL);
 
-    const bool bit7 = (byte & 0x80) == 0x80;
-    byte <<= 1;
+    execSLA(byte);
 
     loadByteToAddress(HL, byte);
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (byte == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
 }
 
 // =================================================================================================
 
 void Cpu::op_SLA_A()
 {
-    const bool bit7 = (A & 0x80) == 0x80;
-    A <<= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit7);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSLA(A);
 }
 
 // =================================================================================================
 
 void Cpu::op_SRA_B()
 {
-    const bool bit0 = (B & 0x01) == 0x01;
-    const bool bit7 = (B & 0x80) == 0x80;
-
-    B >>= 1;
-
-    if (bit7 == true)
-    {
-        B |= 0x80;
-    }
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (B == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSRA(B);
 }
 
 // =================================================================================================
 
 void Cpu::op_SRA_C()
 {
-    const bool bit0 = (C & 0x01) == 0x01;
-    const bool bit7 = (C & 0x80) == 0x80;
-
-    C >>= 1;
-
-    if (bit7 == true)
-    {
-        C |= 0x80;
-    }
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (C == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSRA(C);
 }
 
 // =================================================================================================
 
 void Cpu::op_SRA_D()
 {
-    const bool bit0 = (D & 0x01) == 0x01;
-    const bool bit7 = (D & 0x80) == 0x80;
-
-    D >>= 1;
-
-    if (bit7 == true)
-    {
-        D |= 0x80;
-    }
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (D == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSRA(D);
 }
 
 // =================================================================================================
 
 void Cpu::op_SRA_E()
 {
-    const bool bit0 = (E & 0x01) == 0x01;
-    const bool bit7 = (E & 0x80) == 0x80;
-
-    E >>= 1;
-
-    if (bit7 == true)
-    {
-        E |= 0x80;
-    }
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (E == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSRA(E);
 }
 
 // =================================================================================================
 
 void Cpu::op_SRA_H()
 {
-    const bool bit0 = (H & 0x01) == 0x01;
-    const bool bit7 = (H & 0x80) == 0x80;
-
-    H >>= 1;
-
-    if (bit7 == true)
-    {
-        H |= 0x80;
-    }
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (H == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSRA(H);
 }
 
 // =================================================================================================
 
 void Cpu::op_SRA_L()
 {
-    const bool bit0 = (L & 0x01) == 0x01;
-    const bool bit7 = (L & 0x80) == 0x80;
-
-    L >>= 1;
-
-    if (bit7 == true)
-    {
-        L |= 0x80;
-    }
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (L == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSRA(L);
 }
 
 // =================================================================================================
@@ -723,114 +515,58 @@ void Cpu::op_SRA__HL__()
 {
     uint8_t byte = fetchByteFromAddress(HL);
 
-    const bool bit0 = (byte & 0x01) == 0x01;
-    const bool bit7 = (byte & 0x80) == 0x80;
-
-    byte >>= 1;
-
-    if (bit7 == true)
-    {
-        byte |= 0x80;
-    }
+    execSRA(byte);
 
     loadByteToAddress(HL, byte);
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (byte == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
 }
 
 // =================================================================================================
 
 void Cpu::op_SRA_A()
 {
-    const bool bit0 = (A & 0x01) == 0x01;
-    const bool bit7 = (A & 0x80) == 0x80;
-
-    A >>= 1;
-
-    if (bit7 == true)
-    {
-        A |= 0x80;
-    }
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSRA(A);
 }
 
 // =================================================================================================
 
 void Cpu::op_SWAP_B()
 {
-    B = ((B & 0x0F) << 4) | (B >> 4);
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (B == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSWAP(B);
 }
 
 // =================================================================================================
 
 void Cpu::op_SWAP_C()
 {
-    C = ((C & 0x0F) << 4) | (C >> 4);
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (C == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSWAP(C);
 }
 
 // =================================================================================================
 
 void Cpu::op_SWAP_D()
 {
-    D = ((D & 0x0F) << 4) | (D >> 4);
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (D == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSWAP(D);
 }
 
 // =================================================================================================
 
 void Cpu::op_SWAP_E()
 {
-    E = ((E & 0x0F) << 4) | (E >> 4);
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (E == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSWAP(E);
 }
 
 // =================================================================================================
 
 void Cpu::op_SWAP_H()
 {
-    H = ((H & 0x0F) << 4) | (H >> 4);
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (H == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSWAP(H);
 }
 
 // =================================================================================================
 
 void Cpu::op_SWAP_L()
 {
-    L = ((L & 0x0F) << 4) | (L >> 4);
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (L == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSWAP(L);
 }
 
 // =================================================================================================
@@ -839,110 +575,58 @@ void Cpu::op_SWAP__HL__()
 {
     uint8_t byte = fetchByteFromAddress(HL);
 
-    byte = ((byte & 0x0F) << 4) | (byte >> 4);
+    execSWAP(byte);
 
     loadByteToAddress(HL, byte);
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (byte == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
 }
 
 // =================================================================================================
 
 void Cpu::op_SWAP_A()
 {
-    A = ((A & 0x0F) << 4) | (A >> 4);
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSWAP(A);
 }
 
 // =================================================================================================
 
 void Cpu::op_SRL_B()
 {
-    const bool bit0 = (B & 0x01) == 0x01;
-
-    B >>= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (B == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSRL(B);
 }
 
 // =================================================================================================
 
 void Cpu::op_SRL_C()
 {
-    const bool bit0 = (C & 0x01) == 0x01;
-
-    C >>= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (C == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSRL(C);
 }
 
 // =================================================================================================
 
 void Cpu::op_SRL_D()
 {
-    const bool bit0 = (D & 0x01) == 0x01;
-
-    D >>= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (D == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSRL(D);
 }
 
 // =================================================================================================
 
 void Cpu::op_SRL_E()
 {
-    const bool bit0 = (E & 0x01) == 0x01;
-
-    E >>= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (E == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSRL(E);
 }
 
 // =================================================================================================
 
 void Cpu::op_SRL_H()
 {
-    const bool bit0 = (H & 0x01) == 0x01;
-
-    H >>= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (H == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSRL(H);
 }
 
 // =================================================================================================
 
 void Cpu::op_SRL_L()
 {
-    const bool bit0 = (L & 0x01) == 0x01;
-
-    L >>= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (L == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSRL(L);
 }
 
 // =================================================================================================
@@ -951,96 +635,58 @@ void Cpu::op_SRL__HL__()
 {
     uint8_t byte = fetchByteFromAddress(HL);
 
-    const bool bit0 = (byte & 0x01) == 0x01;
-
-    byte >>= 1;
+    execSRL(byte);
 
     loadByteToAddress(HL, byte);
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (byte == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
 }
 
 // =================================================================================================
 
 void Cpu::op_SRL_A()
 {
-    const bool bit0 = (A & 0x01) == 0x01;
-
-    A >>= 1;
-
-    setFlagRegisterBit(FlagRegisterBits::eCarryFlag, bit0);
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    execSRL(A);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_0_B()
 {
-    const bool isBitSet = (B & 0x01) == 0x01;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(B, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_0_C()
 {
-    const bool isBitSet = (C & 0x01) == 0x01;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(C, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_0_D()
 {
-    const bool isBitSet = (D & 0x01) == 0x01;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(D, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_0_E()
 {
-    const bool isBitSet = (E & 0x01) == 0x01;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(E, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_0_H()
 {
-    const bool isBitSet = (H & 0x01) == 0x01;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(H, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_0_L()
 {
-    const bool isBitSet = (L & 0x01) == 0x01;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(B, 0);
 }
 
 // =================================================================================================
@@ -1048,88 +694,56 @@ void Cpu::op_BIT_0_L()
 void Cpu::op_BIT_0__HL__()
 {
     const uint8_t byte = fetchByteFromAddress(HL);
-    const bool isBitSet = (byte & 0x01) == 0x01;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(byte, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_0_A()
 {
-    const bool isBitSet = (A & 0x01) == 0x01;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(A, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_1_B()
 {
-    const bool isBitSet = (B & 0x02) == 0x02;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(B, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_1_C()
 {
-    const bool isBitSet = (C & 0x02) == 0x02;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(C, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_1_D()
 {
-    const bool isBitSet = (D & 0x02) == 0x02;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(D, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_1_E()
 {
-    const bool isBitSet = (E & 0x02) == 0x02;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(E, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_1_H()
 {
-    const bool isBitSet = (H & 0x02) == 0x02;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(H, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_1_L()
 {
-    const bool isBitSet = (L & 0x02) == 0x02;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(L, 1);
 }
 
 // =================================================================================================
@@ -1137,88 +751,56 @@ void Cpu::op_BIT_1_L()
 void Cpu::op_BIT_1__HL__()
 {
     const uint8_t byte = fetchByteFromAddress(HL);
-    const bool isBitSet = (byte & 0x02) == 0x02;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(byte, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_1_A()
 {
-    const bool isBitSet = (A & 0x02) == 0x02;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(A, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_2_B()
 {
-    const bool isBitSet = (B & 0x04) == 0x04;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(B, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_2_C()
 {
-    const bool isBitSet = (C & 0x04) == 0x04;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(C, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_2_D()
 {
-    const bool isBitSet = (D & 0x04) == 0x04;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(D, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_2_E()
 {
-    const bool isBitSet = (E & 0x04) == 0x04;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(E, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_2_H()
 {
-    const bool isBitSet = (H & 0x04) == 0x04;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(H, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_2_L()
 {
-    const bool isBitSet = (L & 0x04) == 0x04;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(L, 2);
 }
 
 // =================================================================================================
@@ -1226,88 +808,56 @@ void Cpu::op_BIT_2_L()
 void Cpu::op_BIT_2__HL__()
 {
     const uint8_t byte = fetchByteFromAddress(HL);
-    const bool isBitSet = (byte & 0x04) == 0x04;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(byte, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_2_A()
 {
-    const bool isBitSet = (A & 0x04) == 0x04;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(A, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_3_B()
 {
-    const bool isBitSet = (B & 0x08) == 0x08;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(B, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_3_C()
 {
-    const bool isBitSet = (C & 0x08) == 0x08;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(C, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_3_D()
 {
-    const bool isBitSet = (D & 0x08) == 0x08;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(D, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_3_E()
 {
-    const bool isBitSet = (E & 0x08) == 0x08;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(E, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_3_H()
 {
-    const bool isBitSet = (H & 0x08) == 0x08;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(H, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_3_L()
 {
-    const bool isBitSet = (L & 0x08) == 0x08;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(L, 3);
 }
 
 // =================================================================================================
@@ -1315,88 +865,56 @@ void Cpu::op_BIT_3_L()
 void Cpu::op_BIT_3__HL__()
 {
     const uint8_t byte = fetchByteFromAddress(HL);
-    const bool isBitSet = (byte & 0x08) == 0x08;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(byte, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_3_A()
 {
-    const bool isBitSet = (A & 0x08) == 0x08;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(A, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_4_B()
 {
-    const bool isBitSet = (B & 0x10) == 0x10;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(B, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_4_C()
 {
-    const bool isBitSet = (C & 0x10) == 0x10;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(C, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_4_D()
 {
-    const bool isBitSet = (D & 0x10) == 0x10;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(D, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_4_E()
 {
-    const bool isBitSet = (E & 0x10) == 0x10;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(E, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_4_H()
 {
-    const bool isBitSet = (H & 0x10) == 0x10;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(H, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_4_L()
 {
-    const bool isBitSet = (L & 0x10) == 0x10;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(L, 4);
 }
 
 // =================================================================================================
@@ -1404,88 +922,56 @@ void Cpu::op_BIT_4_L()
 void Cpu::op_BIT_4__HL__()
 {
     const uint8_t byte = fetchByteFromAddress(HL);
-    const bool isBitSet = (byte & 0x10) == 0x10;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(byte, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_4_A()
 {
-    const bool isBitSet = (A & 0x10) == 0x10;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(A, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_5_B()
 {
-    const bool isBitSet = (B & 0x20) == 0x20;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(B, 5);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_5_C()
 {
-    const bool isBitSet = (C & 0x20) == 0x20;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(C, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_5_D()
 {
-    const bool isBitSet = (D & 0x20) == 0x20;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(D, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_5_E()
 {
-    const bool isBitSet = (E & 0x20) == 0x20;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(E, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_5_H()
 {
-    const bool isBitSet = (H & 0x20) == 0x20;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(H, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_5_L()
 {
-    const bool isBitSet = (L & 0x20) == 0x20;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(L, 4);
 }
 
 // =================================================================================================
@@ -1493,88 +979,56 @@ void Cpu::op_BIT_5_L()
 void Cpu::op_BIT_5__HL__()
 {
     const uint8_t byte = fetchByteFromAddress(HL);
-    const bool isBitSet = (byte & 0x20) == 0x20;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(byte, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_5_A()
 {
-    const bool isBitSet = (A & 0x20) == 0x20;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(A, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_6_B()
 {
-    const bool isBitSet = (B & 0x40) == 0x40;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(B, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_6_C()
 {
-    const bool isBitSet = (C & 0x40) == 0x40;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(C, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_6_D()
 {
-    const bool isBitSet = (D & 0x40) == 0x40;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(D, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_6_E()
 {
-    const bool isBitSet = (E & 0x40) == 0x40;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(E, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_6_H()
 {
-    const bool isBitSet = (H & 0x40) == 0x40;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(H, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_6_L()
 {
-    const bool isBitSet = (L & 0x40) == 0x40;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(L, 6);
 }
 
 // =================================================================================================
@@ -1582,88 +1036,56 @@ void Cpu::op_BIT_6_L()
 void Cpu::op_BIT_6__HL__()
 {
     const uint8_t byte = fetchByteFromAddress(HL);
-    const bool isBitSet = (byte & 0x40) == 0x40;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(byte, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_6_A()
 {
-    const bool isBitSet = (A & 0x40) == 0x40;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(A, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_7_B()
 {
-    const bool isBitSet = (B & 0x80) == 0x80;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(B, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_7_C()
 {
-    const bool isBitSet = (C & 0x80) == 0x80;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(C, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_7_D()
 {
-    const bool isBitSet = (D & 0x80) == 0x80;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(D, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_7_E()
 {
-    const bool isBitSet = (E & 0x80) == 0x80;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(E, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_7_H()
 {
-    const bool isBitSet = (H & 0x80) == 0x80;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(H, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_7_L()
 {
-    const bool isBitSet = (L & 0x80) == 0x80;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(L, 7);
 }
 
 // =================================================================================================
@@ -1671,178 +1093,172 @@ void Cpu::op_BIT_7_L()
 void Cpu::op_BIT_7__HL__()
 {
     const uint8_t byte = fetchByteFromAddress(HL);
-    const bool isBitSet = (byte & 0x80) == 0x80;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(byte, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_BIT_7_A()
 {
-    const bool isBitSet = (A & 0x80) == 0x80;
-
-    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, !isBitSet);
-    setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
-    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
+    execBIT(A, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_0_B()
 {
-    B &= 0xFE;
+    execRES(B, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_0_C()
 {
-    C &= 0xFE;
+    execRES(C, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_0_D()
 {
-    D &= 0xFE;
+    execRES(D, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_0_E()
 {
-    E &= 0xFE;
+    execRES(E, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_0_H()
 {
-    H &= 0xFE;
+    execRES(H, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_0_L()
 {
-    L &= 0xFE;
+    execRES(L, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_0__HL__()
 {
-    const uint8_t byte = fetchByteFromAddress(HL);
-    loadByteToAddress(HL, byte & 0xFE);
+    uint8_t byte = fetchByteFromAddress(HL);
+    execRES(byte, 0);
+    loadByteToAddress(HL, byte);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_0_A()
 {
-    A &= 0xFE;
+    execRES(A, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_1_B()
 {
-    B &= 0xFD;
+    execRES(B, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_1_C()
 {
-    C &= 0xFD;
+    execRES(C, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_1_D()
 {
-    D &= 0xFD;
+    execRES(D, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_1_E()
 {
-    E &= 0xFD;
+    execRES(E, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_1_H()
 {
-    H &= 0xFD;
+    execRES(H, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_1_L()
 {
-    L &= 0xFD;
+    execRES(L, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_1__HL__()
 {
-    const uint8_t byte = fetchByteFromAddress(HL);
-    loadByteToAddress(HL, byte & 0xFD);
+    uint8_t byte = fetchByteFromAddress(HL);
+    execRES(byte, 1);
+    loadByteToAddress(HL, byte);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_1_A()
 {
-    A &= 0xFD;
+    execRES(A, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_2_B()
 {
-    B &= 0xFB;
+    execRES(B, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_2_C()
 {
-    C &= 0xFB;
+    execRES(C, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_2_D()
 {
-    D &= 0xFB;
+    execRES(D, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_2_E()
 {
-    E &= 0xFB;
+    execRES(E, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_2_H()
 {
-    H &= 0xFB;
+    execRES(H, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_2_L()
 {
-    L &= 0xFB;
+    execRES(L, 2);
 }
 
 // =================================================================================================
@@ -1850,56 +1266,56 @@ void Cpu::op_RES_2_L()
 void Cpu::op_RES_2__HL__()
 {
     const uint8_t byte = fetchByteFromAddress(HL);
-    loadByteToAddress(HL, byte & 0xFB);
+    loadByteToAddress(HL, byte);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_2_A()
 {
-    A &= 0xFB;
+    execRES(A, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_3_B()
 {
-    B &= 0xF7;
+    execRES(B, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_3_C()
 {
-    C &= 0xF7;
+    execRES(C, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_3_D()
 {
-    D &= 0xF7;
+    execRES(D, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_3_E()
 {
-    E &= 0xF7;
+    execRES(E, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_3_H()
 {
-    H &= 0xF7;
+    execRES(H, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_3_L()
 {
-    L &= 0xF7;
+    execRES(L, 3);
 }
 
 // =================================================================================================
@@ -1907,234 +1323,246 @@ void Cpu::op_RES_3_L()
 void Cpu::op_RES_3__HL__()
 {
     const uint8_t byte = fetchByteFromAddress(HL);
-    loadByteToAddress(HL, byte & 0xF7);
+    loadByteToAddress(HL, byte);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_3_A()
 {
-    A &= 0xF7;
+    execRES(A, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_4_B()
 {
-    B &= 0xEF;
+    execRES(B, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_4_C()
 {
-    C &= 0xEF;
+    execRES(C, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_4_D()
 {
-    D &= 0xEF;
+    execRES(D, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_4_E()
 {
-    E &= 0xEF;
+    execRES(E, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_4_H()
 {
-    H &= 0xEF;
+    execRES(H, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_4_L()
 {
-    L &= 0xEF;
+    execRES(L, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_4__HL__()
 {
-    const uint8_t byte = fetchByteFromAddress(HL);
-    loadByteToAddress(HL, byte & 0xEF);
+    uint8_t byte = fetchByteFromAddress(HL);
+
+    execRES(byte, 4);
+
+    loadByteToAddress(HL, byte);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_4_A()
 {
-    A &= 0xEF;
+    execRES(A, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_5_B()
 {
-    B &= 0xDF;
+    execRES(B, 5);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_5_C()
 {
-    C &= 0xDF;
+    execRES(C, 5);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_5_D()
 {
-    D &= 0xDF;
+    execRES(D, 5);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_5_E()
 {
-    E &= 0xDF;
+    execRES(E, 5);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_5_H()
 {
-    H &= 0xDF;
+    execRES(H, 5);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_5_L()
 {
-    L &= 0xDF;
+    execRES(L, 5);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_5__HL__()
 {
-    const uint8_t byte = fetchByteFromAddress(HL);
-    loadByteToAddress(HL, byte & 0xDF);
+    uint8_t byte = fetchByteFromAddress(HL);
+
+    execRES(byte, 5);
+
+    loadByteToAddress(HL, byte);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_5_A()
 {
-    A &= 0xDF;
+    execRES(A, 5);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_6_B()
 {
-    B &= 0xBF;
+    execRES(B, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_6_C()
 {
-    C &= 0xBF;
+    execRES(C, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_6_D()
 {
-    D &= 0xBF;
+    execRES(D, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_6_E()
 {
-    E &= 0xBF;
+    execRES(E, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_6_H()
 {
-    H &= 0xBF;
+    execRES(H, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_6_L()
 {
-    L &= 0xBF;
+    execRES(L, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_6__HL__()
 {
-    const uint8_t byte = fetchByteFromAddress(HL);
-    loadByteToAddress(HL, byte & 0xBF);
+    uint8_t byte = fetchByteFromAddress(HL);
+
+    execRES(byte, 6);
+
+    loadByteToAddress(HL, byte);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_6_A()
 {
-    A &= 0xBF;
+    execRES(A, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_7_B()
 {
-    B &= 0x7F;
+    execRES(B, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_7_C()
 {
-    C &= 0x7F;
+    execRES(C, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_7_D()
 {
-    D &= 0x7F;
+    execRES(D, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_7_E()
 {
-    E &= 0x7F;
+    execRES(E, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_7_H()
 {
-    H &= 0x7F;
+    execRES(H, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_7_L()
 {
-    L &= 0x7F;
+    execRES(L, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_RES_7__HL__()
 {
-    const uint8_t byte = fetchByteFromAddress(HL);
+    uint8_t byte = fetchByteFromAddress(HL);
+
+    execRES(byte, 7);
+
     loadByteToAddress(HL, byte & 0x7F);
 }
 
@@ -2142,461 +1570,485 @@ void Cpu::op_RES_7__HL__()
 
 void Cpu::op_RES_7_A()
 {
-    A &= 0x7F;
+    execRES(A, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_0_B()
 {
-    B |= 0x01;
+    execSET(B, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_0_C()
 {
-    C |= 0x01;
+    execSET(C, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_0_D()
 {
-    D |= 0x01;
+    execSET(D, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_0_E()
 {
-    E |= 0x01;
+    execSET(E, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_0_H()
 {
-    H |= 0x01;
+    execSET(H, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_0_L()
 {
-    L |= 0x01;
+    execSET(L, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_0__HL__()
 {
-    const uint8_t byte = fetchByteFromAddress(HL);
-    loadByteToAddress(HL, byte | 0x01);
+    uint8_t byte = fetchByteFromAddress(HL);
+
+    execSET(byte, 0);
+
+    loadByteToAddress(HL, byte);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_0_A()
 {
-    A |= 0x01;
+    execSET(A, 0);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_1_B()
 {
-    B |= 0x02;
+    execSET(B, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_1_C()
 {
-    C |= 0x02;
+    execSET(C, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_1_D()
 {
-    D |= 0x02;
+    execSET(D, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_1_E()
 {
-    E |= 0x02;
+    execSET(E, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_1_H()
 {
-    H |= 0x02;
+    execSET(H, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_1_L()
 {
-    L |= 0x02;
+    execSET(L, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_1__HL__()
 {
-    const uint8_t byte = fetchByteFromAddress(HL);
-    loadByteToAddress(HL, byte | 0x02);
+    uint8_t byte = fetchByteFromAddress(HL);
+
+    execSET(byte, 1);
+
+    loadByteToAddress(HL, byte);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_1_A()
 {
-    A |= 0x02;
+    execSET(A, 1);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_2_B()
 {
-    B |= 0x04;
+    execSET(B, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_2_C()
 {
-    C |= 0x04;
+    execSET(C, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_2_D()
 {
-    D |= 0x04;
+    execSET(D, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_2_E()
 {
-    E |= 0x04;
+    execSET(E, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_2_H()
 {
-    H |= 0x04;
+    execSET(H, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_2_L()
 {
-    L |= 0x04;
+    execSET(L, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_2__HL__()
 {
-    const uint8_t byte = fetchByteFromAddress(HL);
-    loadByteToAddress(HL, byte | 0x04);
+    uint8_t byte = fetchByteFromAddress(HL);
+
+    execSET(byte, 2);
+
+    loadByteToAddress(HL, byte);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_2_A()
 {
-    A |= 0x04;
+    execSET(A, 2);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_3_B()
 {
-    B |= 0x08;
+    execSET(B, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_3_C()
 {
-    C |= 0x08;
+    execSET(C, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_3_D()
 {
-    D |= 0x08;
+    execSET(D, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_3_E()
 {
-    E |= 0x08;
+    execSET(E, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_3_H()
 {
-    H |= 0x08;
+    execSET(H, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_3_L()
 {
-    L |= 0x08;
+    execSET(L, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_3__HL__()
 {
-    const uint8_t byte = fetchByteFromAddress(HL);
-    loadByteToAddress(HL, byte | 0x08);
+    uint8_t byte = fetchByteFromAddress(HL);
+
+    execSET(byte, 3);
+
+    loadByteToAddress(HL, byte);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_3_A()
 {
-    A |= 0x08;
+    execSET(A, 3);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_4_B()
 {
-    B |= 0x10;
+    execSET(B, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_4_C()
 {
-    C |= 0x10;
+    execSET(C, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_4_D()
 {
-    D |= 0x10;
+    execSET(D, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_4_E()
 {
-    E |= 0x10;
+    execSET(E, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_4_H()
 {
-    H |= 0x10;
+    execSET(H, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_4_L()
 {
-    L |= 0x10;
+    execSET(L, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_4__HL__()
 {
-    const uint8_t byte = fetchByteFromAddress(HL);
-    loadByteToAddress(HL, byte | 0x10);
+    uint8_t byte = fetchByteFromAddress(HL);
+
+    execSET(byte, 4);
+
+    loadByteToAddress(HL, byte);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_4_A()
 {
-    A |= 0x10;
+    execSET(A, 4);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_5_B()
 {
-    B |= 0x20;
+    execSET(B, 5);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_5_C()
 {
-    C |= 0x20;
+    execSET(C, 5);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_5_D()
 {
-    D |= 0x20;
+    execSET(D, 5);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_5_E()
 {
-    E |= 0x20;
+    execSET(E, 5);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_5_H()
 {
-    H |= 0x20;
+    execSET(H, 5);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_5_L()
 {
-    L |= 0x20;
+    execSET(L, 5);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_5__HL__()
 {
-    const uint8_t byte = fetchByteFromAddress(HL);
-    loadByteToAddress(HL, byte | 0x20);
+    uint8_t byte = fetchByteFromAddress(HL);
+
+    execSET(byte, 5);
+
+    loadByteToAddress(HL, byte);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_5_A()
 {
-    A |= 0x20;
+    execSET(A, 5);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_6_B()
 {
-    B |= 0x40;
+    execSET(B, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_6_C()
 {
-    C |= 0x40;
+    execSET(C, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_6_D()
 {
-    D |= 0x40;
+    execSET(D, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_6_E()
 {
-    E |= 0x40;
+    execSET(E, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_6_H()
 {
-    H |= 0x40;
+    execSET(H, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_6_L()
 {
-    L |= 0x40;
+    execSET(L, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_6__HL__()
 {
-    const uint8_t byte = fetchByteFromAddress(HL);
-    loadByteToAddress(HL, byte | 0x40);
+    uint8_t byte = fetchByteFromAddress(HL);
+
+    execSET(byte, 6);
+
+    loadByteToAddress(HL, byte);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_6_A()
 {
-    A |= 0x40;
+    execSET(A, 6);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_7_B()
 {
-    B |= 0x80;
+    execSET(B, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_7_C()
 {
-    C |= 0x80;
+    execSET(C, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_7_D()
 {
-    D |= 0x80;
+    execSET(D, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_7_E()
 {
-    E |= 0x80;
+    execSET(E, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_7_H()
 {
-    H |= 0x80;
+    execSET(H, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_7_L()
 {
-    L |= 0x80;
+    execSET(L, 7);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_7__HL__()
 {
-    const uint8_t byte = fetchByteFromAddress(HL);
-    loadByteToAddress(HL, byte | 0x80);
+    uint8_t byte = fetchByteFromAddress(HL);
+
+    execSET(byte, 7);
+
+    loadByteToAddress(HL, byte);
 }
 
 // =================================================================================================
 
 void Cpu::op_SET_7_A()
 {
-    A |= 0x80;
+    execSET(A, 7);
 }

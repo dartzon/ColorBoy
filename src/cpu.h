@@ -301,6 +301,21 @@ private:
     //  Prefix CB instruction set.
     // =============================================================================================
 
+    void execRLC(uint8_t& data);   ///< opcode from 0xCB00 to 0xCB07.
+    void execRRC(uint8_t& data);   ///< opcode from 0xCB08 to 0xCB0F.
+    void execRL(uint8_t& data);    ///< opcode from 0xCB10 to 0xCB17.
+    void execRR(uint8_t& data);    ///< opcode from 0xCB18 to 0xCB1F.
+    void execSLA(uint8_t& data);   ///< opcode from 0xCB20 to 0xCB27.
+    void execSRA(uint8_t& data);   ///< opcode from 0xCB28 to 0xCB2F.
+    void execSWAP(uint8_t& data);  ///< opcode from 0xCB30 to 0xCB37.
+    void execSRL(uint8_t& data);   ///< opcode from 0xCB38 to 0xCB3F.
+    void execBIT(const uint8_t data,
+                 const uint8_t bitPos);  ///< opcode from 0xCB40 to 0xCB7F.
+    void execRES(uint8_t& data,
+                 const uint8_t bitPos);  ///< opcode from 0xCB80 to 0xCBBF.
+    void execSET(uint8_t& data,
+                 const uint8_t bitPos);  ///< opcode from 0xCBC0 to 0xCBFF.
+
     void op_RLC_B();        ///< opcode: 0xCB00
     void op_RLC_C();        ///< opcode: 0xCB01
     void op_RLC_D();        ///< opcode: 0xCB02
