@@ -73,10 +73,10 @@ struct GBConfig
         }
     }
 
-    static constexpr uint32_t sysMemSize = 65536;  ///< Gameboy CPU has 16-bit address bus (2^16).
-    mutable uint8_t clockFrequency;                ///< CPU clock frequency in MHz.
-    mutable uint16_t wRAMSize;                     ///< Working ram size in Byte.
-    mutable uint16_t vRAMSize;                     ///< Video ram size in Byte.
+    static const uint32_t sysMemSize = 65536;  ///< Gameboy CPU has 16-bit address bus (2^16).
+    mutable uint8_t clockFrequency;            ///< CPU clock frequency in MHz.
+    mutable uint16_t wRAMSize;                 ///< Working ram size in Byte.
+    mutable uint16_t vRAMSize;                 ///< Video ram size in Byte.
 };
 
 #endif /* CONFIG_H_ */

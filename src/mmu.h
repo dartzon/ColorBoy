@@ -30,6 +30,7 @@
 
 #include <cstdint>
 #include <array>
+#include <algorithm>
 
 #include "config.h"
 
@@ -68,9 +69,20 @@ public:
     /// \param word Value to write.
     void writeWord(const uint16_t address, const uint16_t word);
 
+    /// \brief Map data from a buffer to the internal RAM.
+    ///
+    /// \param buffer buffer to map.
+    /// \param startAddr start address where the data should be copied to.
+    ///
+    template<std::size_t byteCount>
+    void mapDataBufferToMemory(const std::array<uint8_t, byteCount>& buffer, uint16_t startAddr)
+    {
+        std::copy_n(std::cbegin(buffer), byteCount, std::begin(m_memory) + startAddr);
+    }
+
 private:
-    std::array<uint8_t, GBConfig::sysMemSize>&
-        m_memory;  ///< Representation of the console's memory.
+    std::array<uint8_t,
+               GBConfig::sysMemSize>& m_memory;  ///< Representation of the console's memory.
 };
 
 #endif /* MMU_H_ */

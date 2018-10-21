@@ -30,6 +30,7 @@
 
 void Cpu::op_NOP()
 {
+    printf("NOP\n");
 }
 
 // =================================================================================================
@@ -38,6 +39,8 @@ void Cpu::op_LD_BC_d16()
 {
     B = MBR[0];
     C = MBR[1];
+
+    printf("LD BC, $%x\n", BC);
 }
 
 // =================================================================================================
@@ -45,6 +48,8 @@ void Cpu::op_LD_BC_d16()
 void Cpu::op_LD__BC__A()
 {
     loadByteToAddress(BC, A);
+
+    printf("LD BC, A\n");
 }
 
 // =================================================================================================
@@ -52,6 +57,8 @@ void Cpu::op_LD__BC__A()
 void Cpu::op_INC_BC()
 {
     ++BC;
+
+    printf("INC BC\n");
 }
 
 // =================================================================================================
@@ -65,6 +72,8 @@ void Cpu::op_INC_B()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (B == 0));
+
+    printf("INC B\n");
 }
 
 // =================================================================================================
@@ -78,6 +87,8 @@ void Cpu::op_DEC_B()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (B == 0));
+
+    printf("DEC B\n");
 }
 
 // =================================================================================================
@@ -85,6 +96,8 @@ void Cpu::op_DEC_B()
 void Cpu::op_LD_B_d8()
 {
     B = MBR[0];
+
+    printf("LD B, $%x\n", B);
 }
 
 // =================================================================================================
@@ -100,13 +113,18 @@ void Cpu::op_RLCA()
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+
+    printf("RLCA\n");
 }
 
 // =================================================================================================
 
 void Cpu::op_LD__a16__SP()
 {
-    loadWordToAddress(BC, SP);
+    const uint16_t addr = cbutil::combineTowBytes(MBR[0], MBR[1]);
+    loadWordToAddress(SP, addr);
+
+    printf("LD ($%x), SP\n", addr);
 }
 
 // =================================================================================================
@@ -123,6 +141,8 @@ void Cpu::op_ADD_HL_BC()
     // Set if carry from bit 11.
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+
+    printf("ADD HL, BC\n");
 }
 
 // =================================================================================================
@@ -130,6 +150,8 @@ void Cpu::op_ADD_HL_BC()
 void Cpu::op_LD_A__BC__()
 {
     A = fetchByteFromAddress(BC);
+
+    printf("ADD A, (BC)\n");
 }
 
 // =================================================================================================
@@ -137,6 +159,8 @@ void Cpu::op_LD_A__BC__()
 void Cpu::op_DEC_BC()
 {
     --BC;
+
+    printf("DEC BC\n");
 }
 
 // =================================================================================================
@@ -150,6 +174,8 @@ void Cpu::op_INC_C()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (C == 0));
+
+    printf("INC C\n");
 }
 
 // =================================================================================================
@@ -163,6 +189,8 @@ void Cpu::op_DEC_C()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (C == 0));
+
+    printf("DEC C\n");
 }
 
 // =================================================================================================
@@ -170,6 +198,8 @@ void Cpu::op_DEC_C()
 void Cpu::op_LD_C_d8()
 {
     C = MBR[0];
+
+    printf("LD C, $%x\n", C);
 }
 
 // =================================================================================================
@@ -184,6 +214,8 @@ void Cpu::op_RRCA()
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+
+    printf("RRCA\n");
 }
 
 // =================================================================================================
@@ -191,6 +223,8 @@ void Cpu::op_RRCA()
 void Cpu::op_STOP()
 {
     switchState(InstructionCycleState::eStop);
+
+    printf("STOP\n");
 }
 
 // =================================================================================================
@@ -199,6 +233,8 @@ void Cpu::op_LD_DE_d16()
 {
     D = MBR[0];
     E = MBR[1];
+
+    printf("LD DE, $%x\n", DE);
 }
 
 // =================================================================================================
@@ -206,6 +242,8 @@ void Cpu::op_LD_DE_d16()
 void Cpu::op_LD__DE__A()
 {
     loadByteToAddress(DE, A);
+
+    printf("LD (DE), A\n");
 }
 
 // =================================================================================================
@@ -213,6 +251,8 @@ void Cpu::op_LD__DE__A()
 void Cpu::op_INC_DE()
 {
     ++DE;
+
+    printf("INC DE\n");
 }
 
 // =================================================================================================
@@ -226,6 +266,8 @@ void Cpu::op_INC_D()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (D == 0));
+
+    printf("INC D\n");
 }
 
 // =================================================================================================
@@ -239,6 +281,8 @@ void Cpu::op_DEC_D()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (D == 0));
+
+    printf("DEC D\n");
 }
 
 // =================================================================================================
@@ -246,6 +290,8 @@ void Cpu::op_DEC_D()
 void Cpu::op_LD_D_d8()
 {
     D = MBR[0];
+
+    printf("LD D, $%x\n", D);
 }
 
 // =================================================================================================
@@ -261,6 +307,8 @@ void Cpu::op_RLA()
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+
+    printf("RLA\n");
 }
 
 // =================================================================================================
@@ -268,6 +316,8 @@ void Cpu::op_RLA()
 void Cpu::op_JR_r8()
 {
     PC += static_cast<const int8_t>(MBR[0]);
+
+    printf("JR $%x\n", MBR[0]);
 }
 
 // =================================================================================================
@@ -284,6 +334,8 @@ void Cpu::op_ADD_HL_DE()
     // Set if carry from bit 11.
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+
+    printf("ADD HL, DE\n");
 }
 
 // =================================================================================================
@@ -291,6 +343,8 @@ void Cpu::op_ADD_HL_DE()
 void Cpu::op_LD_A__DE__()
 {
     A = fetchByteFromAddress(DE);
+
+    printf("LD A, (DE)\n");
 }
 
 // =================================================================================================
@@ -298,6 +352,8 @@ void Cpu::op_LD_A__DE__()
 void Cpu::op_DEC_DE()
 {
     --DE;
+
+    printf("DEC DE\n");
 }
 
 // =================================================================================================
@@ -310,6 +366,8 @@ void Cpu::op_INC_E()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, ((E & 0x0F) == 0x0F));
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (E == 0));
+
+    printf("INC E\n");
 }
 
 // =================================================================================================
@@ -323,6 +381,8 @@ void Cpu::op_DEC_E()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (E == 0));
+
+    printf("DEC E\n");
 }
 
 // =================================================================================================
@@ -330,6 +390,8 @@ void Cpu::op_DEC_E()
 void Cpu::op_LD_E_d8()
 {
     E = MBR[0];
+
+    printf("LD E, $%x\n", E);
 }
 
 // =================================================================================================
@@ -345,6 +407,8 @@ void Cpu::op_RRA()
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+
+    printf("RRA\n");
 }
 
 // =================================================================================================
@@ -354,14 +418,17 @@ void Cpu::op_JR_NZ_r8()
     const uint8_t jumpFactor = static_cast<const uint8_t>(
         checkFlagRegisterBit(FlagRegisterBits::eZeroFlag));
     PC += static_cast<const int8_t>(MBR[0]) * !jumpFactor;
+
+    printf("JR NZ, $%x\n", static_cast<const int8_t>(MBR[0]));
 }
 
 // =================================================================================================
 
 void Cpu::op_LD_HL_d16()
 {
-    H = MBR[0];
-    L = MBR[1];
+    HL = cbutil::combineTowBytes(MBR[0], MBR[1]);
+
+    printf("LD HL, $%x\n", HL);
 }
 
 // =================================================================================================
@@ -370,6 +437,8 @@ void Cpu::op_LD__HLplus__A()
 {
     loadByteToAddress(HL, A);
     ++HL;
+
+    printf("LD (HL+), A\n");
 }
 
 // =================================================================================================
@@ -377,6 +446,8 @@ void Cpu::op_LD__HLplus__A()
 void Cpu::op_INC_HL()
 {
     ++HL;
+
+    printf("INC HL\n");
 }
 
 // =================================================================================================
@@ -390,6 +461,8 @@ void Cpu::op_INC_H()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (H == 0));
+
+    printf("INC H\n");
 }
 
 // =================================================================================================
@@ -403,6 +476,8 @@ void Cpu::op_DEC_H()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (H == 0));
+
+    printf("DEC H\n");
 }
 
 // =================================================================================================
@@ -410,6 +485,8 @@ void Cpu::op_DEC_H()
 void Cpu::op_LD_H_d8()
 {
     H = MBR[0];
+
+    printf("LD H, $%x\n", H);
 }
 
 // =================================================================================================
@@ -417,6 +494,8 @@ void Cpu::op_LD_H_d8()
 void Cpu::op_DAA()
 {
     NOTYETIMPLEMENTED();
+
+    printf("DAA\n");
 }
 
 // =================================================================================================
@@ -426,6 +505,8 @@ void Cpu::op_JR_Z_r8()
     const uint8_t jumpFactor = static_cast<const uint8_t>(
         checkFlagRegisterBit(FlagRegisterBits::eZeroFlag));
     PC += static_cast<const int8_t>(MBR[0]) * jumpFactor;
+
+    printf("JR Z, $%x\n", static_cast<const int8_t>(MBR[0]));
 }
 
 // =================================================================================================
@@ -442,6 +523,8 @@ void Cpu::op_ADD_HL_HL()
     // Set if carry from bit 11.
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+
+    printf("ADD HL, HL\n");
 }
 
 // =================================================================================================
@@ -450,6 +533,8 @@ void Cpu::op_LD_A__HLplus__()
 {
     A = fetchByteFromAddress(HL);
     ++HL;
+
+    printf("ADD A, (HL+)\n");
 }
 
 // =================================================================================================
@@ -457,6 +542,8 @@ void Cpu::op_LD_A__HLplus__()
 void Cpu::op_DEC_HL()
 {
     --HL;
+
+    printf("DEC HL\n");
 }
 
 // =================================================================================================
@@ -470,6 +557,8 @@ void Cpu::op_INC_L()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (L == 0));
+
+    printf("INC L\n");
 }
 
 // =================================================================================================
@@ -483,6 +572,8 @@ void Cpu::op_DEC_L()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (L == 0));
+
+    printf("DEC L\n");
 }
 
 // =================================================================================================
@@ -490,6 +581,8 @@ void Cpu::op_DEC_L()
 void Cpu::op_LD_L_d8()
 {
     L = MBR[0];
+
+    printf("LD L, $%x\n", L);
 }
 
 // =================================================================================================
@@ -500,6 +593,8 @@ void Cpu::op_CPL()
 
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
+
+    printf("CPL\n");
 }
 
 // =================================================================================================
@@ -509,6 +604,8 @@ void Cpu::op_JR_NC_r8()
     const uint8_t jumpFactor = static_cast<const uint8_t>(
         checkFlagRegisterBit(FlagRegisterBits::eCarryFlag));
     PC += static_cast<const int8_t>(MBR[0]) * !jumpFactor;
+
+    printf("JR NC, $%x\n", static_cast<const int8_t>(MBR[0]));
 }
 
 // =================================================================================================
@@ -516,6 +613,8 @@ void Cpu::op_JR_NC_r8()
 void Cpu::op_LD_SP_d16()
 {
     SP = cbutil::combineTowBytes(MBR[0], MBR[1]);
+
+    printf("LD SP, $%x\n", SP);
 }
 
 // =================================================================================================
@@ -524,6 +623,8 @@ void Cpu::op_LD__HLminus__A()
 {
     loadByteToAddress(HL, A);
     --HL;
+
+    printf("LD (HL-), A\n");
 }
 
 // =================================================================================================
@@ -531,6 +632,8 @@ void Cpu::op_LD__HLminus__A()
 void Cpu::op_INC_SP()
 {
     ++SP;
+
+    printf("INC SP\n");
 }
 
 // =================================================================================================
@@ -548,6 +651,8 @@ void Cpu::op_INC__HL__()
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (byte == 0));
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
+
+    printf("INC (HL)\n");
 }
 
 // =================================================================================================
@@ -565,6 +670,8 @@ void Cpu::op_DEC__HL__()
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (byte == 0));
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
+
+    printf("DEC (HL)\n");
 }
 
 // =================================================================================================
@@ -572,6 +679,8 @@ void Cpu::op_DEC__HL__()
 void Cpu::op_LD__HL__d8()
 {
     loadByteToAddress(HL, MBR[0]);
+
+    printf("LD (HL), $%x\n", MBR[0]);
 }
 
 // =================================================================================================
@@ -581,6 +690,8 @@ void Cpu::op_SCF()
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eCarryFlag, true);
+
+    printf("SCF\n");
 }
 
 // =================================================================================================
@@ -590,6 +701,8 @@ void Cpu::op_JR_C_r8()
     const uint8_t jumpFactor = static_cast<const uint8_t>(
         checkFlagRegisterBit(FlagRegisterBits::eCarryFlag));
     PC += static_cast<const int8_t>(MBR[0]) * jumpFactor;
+
+    printf("JR C, $%x\n", static_cast<const int8_t>(MBR[0]));
 }
 
 // =================================================================================================
@@ -606,6 +719,8 @@ void Cpu::op_ADD_HL_SP()
     // Set if carry from bit 11.
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+
+    printf("ADD HL, SP\n");
 }
 
 // =================================================================================================
@@ -618,6 +733,8 @@ void Cpu::op_LD_A__HLminus__()
     A = byte;
 
     --HL;
+
+    printf("LD A, (HL-)\n");
 }
 
 // =================================================================================================
@@ -625,6 +742,8 @@ void Cpu::op_LD_A__HLminus__()
 void Cpu::op_DEC_SP()
 {
     --SP;
+
+    printf("DEC SP\n");
 }
 
 // =================================================================================================
@@ -638,6 +757,8 @@ void Cpu::op_INC_A()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("INC A\n");
 }
 
 // =================================================================================================
@@ -651,6 +772,8 @@ void Cpu::op_DEC_A()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("DEC A\n");
 }
 
 // =================================================================================================
@@ -658,6 +781,8 @@ void Cpu::op_DEC_A()
 void Cpu::op_LD_A_d8()
 {
     A = MBR[0];
+
+    printf("LD A, $%x\n", A);
 }
 
 // =================================================================================================
@@ -670,6 +795,8 @@ void Cpu::op_CCF()
     setFlagRegisterBit(FlagRegisterBits::eCarryFlag, !carryFlag);
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
+
+    printf("CCF\n");
 }
 
 // =================================================================================================
@@ -677,6 +804,7 @@ void Cpu::op_CCF()
 void Cpu::op_LD_B_B()
 {
     // Avoid self assignment.
+    printf("LD B, B\n");
 }
 
 // =================================================================================================
@@ -684,6 +812,8 @@ void Cpu::op_LD_B_B()
 void Cpu::op_LD_B_C()
 {
     B = C;
+
+    printf("LD B, C\n");
 }
 
 // =================================================================================================
@@ -691,6 +821,8 @@ void Cpu::op_LD_B_C()
 void Cpu::op_LD_B_D()
 {
     B = D;
+
+    printf("LD B, D\n");
 }
 
 // =================================================================================================
@@ -698,6 +830,8 @@ void Cpu::op_LD_B_D()
 void Cpu::op_LD_B_E()
 {
     B = E;
+
+    printf("LD B, E\n");
 }
 
 // =================================================================================================
@@ -705,6 +839,8 @@ void Cpu::op_LD_B_E()
 void Cpu::op_LD_B_H()
 {
     B = H;
+
+    printf("LD B, H\n");
 }
 
 // =================================================================================================
@@ -712,6 +848,8 @@ void Cpu::op_LD_B_H()
 void Cpu::op_LD_B_L()
 {
     B = L;
+
+    printf("LD B, L\n");
 }
 
 // =================================================================================================
@@ -719,6 +857,8 @@ void Cpu::op_LD_B_L()
 void Cpu::op_LD_B__HL__()
 {
     B = fetchByteFromAddress(HL);
+
+    printf("LD B, (HL)\n");
 }
 
 // =================================================================================================
@@ -726,6 +866,8 @@ void Cpu::op_LD_B__HL__()
 void Cpu::op_LD_B_A()
 {
     B = A;
+
+    printf("LD B, A\n");
 }
 
 // =================================================================================================
@@ -733,6 +875,8 @@ void Cpu::op_LD_B_A()
 void Cpu::op_LD_C_B()
 {
     C = B;
+
+    printf("LD C, B\n");
 }
 
 // =================================================================================================
@@ -740,6 +884,7 @@ void Cpu::op_LD_C_B()
 void Cpu::op_LD_C_C()
 {
     // Avoid self assignment.
+    printf("LD C, C\n");
 }
 
 // =================================================================================================
@@ -747,6 +892,8 @@ void Cpu::op_LD_C_C()
 void Cpu::op_LD_C_D()
 {
     C = D;
+
+    printf("LD C, D\n");
 }
 
 // =================================================================================================
@@ -754,6 +901,8 @@ void Cpu::op_LD_C_D()
 void Cpu::op_LD_C_E()
 {
     C = E;
+
+    printf("LD C, E\n");
 }
 
 // =================================================================================================
@@ -761,6 +910,8 @@ void Cpu::op_LD_C_E()
 void Cpu::op_LD_C_H()
 {
     C = H;
+
+    printf("LD C, H\n");
 }
 
 // =================================================================================================
@@ -768,6 +919,8 @@ void Cpu::op_LD_C_H()
 void Cpu::op_LD_C_L()
 {
     C = L;
+
+    printf("LD C, L\n");
 }
 
 // =================================================================================================
@@ -775,6 +928,8 @@ void Cpu::op_LD_C_L()
 void Cpu::op_LD_C__HL__()
 {
     C = fetchByteFromAddress(HL);
+
+    printf("LD C, (HL)\n");
 }
 
 // =================================================================================================
@@ -782,6 +937,8 @@ void Cpu::op_LD_C__HL__()
 void Cpu::op_LD_C_A()
 {
     C = A;
+
+    printf("LD C, A\n");
 }
 
 // =================================================================================================
@@ -789,6 +946,8 @@ void Cpu::op_LD_C_A()
 void Cpu::op_LD_D_B()
 {
     D = B;
+
+    printf("LD D, B\n");
 }
 
 // =================================================================================================
@@ -796,6 +955,8 @@ void Cpu::op_LD_D_B()
 void Cpu::op_LD_D_C()
 {
     D = C;
+
+    printf("LD D, C\n");
 }
 
 // =================================================================================================
@@ -803,6 +964,7 @@ void Cpu::op_LD_D_C()
 void Cpu::op_LD_D_D()
 {
     // Avoid self assignment.
+    printf("LD D, D\n");
 }
 
 // =================================================================================================
@@ -810,6 +972,8 @@ void Cpu::op_LD_D_D()
 void Cpu::op_LD_D_E()
 {
     D = E;
+
+    printf("LD D, E\n");
 }
 
 // =================================================================================================
@@ -817,6 +981,8 @@ void Cpu::op_LD_D_E()
 void Cpu::op_LD_D_H()
 {
     D = H;
+
+    printf("LD D, H\n");
 }
 
 // =================================================================================================
@@ -824,6 +990,8 @@ void Cpu::op_LD_D_H()
 void Cpu::op_LD_D_L()
 {
     D = L;
+
+    printf("LD D, L\n");
 }
 
 // =================================================================================================
@@ -831,6 +999,8 @@ void Cpu::op_LD_D_L()
 void Cpu::op_LD_D__HL__()
 {
     D = fetchByteFromAddress(HL);
+
+    printf("LD D, (HL)\n");
 }
 
 // =================================================================================================
@@ -838,6 +1008,8 @@ void Cpu::op_LD_D__HL__()
 void Cpu::op_LD_D_A()
 {
     D = A;
+
+    printf("LD D, A\n");
 }
 
 // =================================================================================================
@@ -845,6 +1017,8 @@ void Cpu::op_LD_D_A()
 void Cpu::op_LD_E_B()
 {
     E = B;
+
+    printf("LD E, B\n");
 }
 
 // =================================================================================================
@@ -852,6 +1026,8 @@ void Cpu::op_LD_E_B()
 void Cpu::op_LD_E_C()
 {
     E = C;
+
+    printf("LD E, C\n");
 }
 
 // =================================================================================================
@@ -859,6 +1035,8 @@ void Cpu::op_LD_E_C()
 void Cpu::op_LD_E_D()
 {
     E = D;
+
+    printf("LD E, D\n");
 }
 
 // =================================================================================================
@@ -866,6 +1044,7 @@ void Cpu::op_LD_E_D()
 void Cpu::op_LD_E_E()
 {
     // Avoid self assignment.
+    printf("LD E, E\n");
 }
 
 // =================================================================================================
@@ -873,6 +1052,8 @@ void Cpu::op_LD_E_E()
 void Cpu::op_LD_E_H()
 {
     E = H;
+
+    printf("LD E, H\n");
 }
 
 // =================================================================================================
@@ -880,6 +1061,8 @@ void Cpu::op_LD_E_H()
 void Cpu::op_LD_E_L()
 {
     E = L;
+
+    printf("LD E, L\n");
 }
 
 // =================================================================================================
@@ -887,6 +1070,8 @@ void Cpu::op_LD_E_L()
 void Cpu::op_LD_E__HL__()
 {
     E = fetchByteFromAddress(HL);
+
+    printf("LD E, (HL)\n");
 }
 
 // =================================================================================================
@@ -894,6 +1079,8 @@ void Cpu::op_LD_E__HL__()
 void Cpu::op_LD_E_A()
 {
     E = A;
+
+    printf("LD E, A\n");
 }
 
 // =================================================================================================
@@ -901,6 +1088,8 @@ void Cpu::op_LD_E_A()
 void Cpu::op_LD_H_B()
 {
     H = B;
+
+    printf("LD H, B\n");
 }
 
 // =================================================================================================
@@ -908,6 +1097,8 @@ void Cpu::op_LD_H_B()
 void Cpu::op_LD_H_C()
 {
     H = C;
+
+    printf("LD H, C\n");
 }
 
 // =================================================================================================
@@ -915,6 +1106,8 @@ void Cpu::op_LD_H_C()
 void Cpu::op_LD_H_D()
 {
     H = D;
+
+    printf("LD H, D\n");
 }
 
 // =================================================================================================
@@ -922,6 +1115,8 @@ void Cpu::op_LD_H_D()
 void Cpu::op_LD_H_E()
 {
     H = E;
+
+    printf("LD H, E\n");
 }
 
 // =================================================================================================
@@ -929,6 +1124,7 @@ void Cpu::op_LD_H_E()
 void Cpu::op_LD_H_H()
 {
     // Avoid self assignment.
+    printf("LD H, H\n");
 }
 
 // =================================================================================================
@@ -936,6 +1132,8 @@ void Cpu::op_LD_H_H()
 void Cpu::op_LD_H_L()
 {
     H = L;
+
+    printf("LD H, L\n");
 }
 
 // =================================================================================================
@@ -943,6 +1141,8 @@ void Cpu::op_LD_H_L()
 void Cpu::op_LD_H__HL__()
 {
     H = fetchByteFromAddress(HL);
+
+    printf("LD H, (HL)\n");
 }
 
 // =================================================================================================
@@ -950,6 +1150,8 @@ void Cpu::op_LD_H__HL__()
 void Cpu::op_LD_H_A()
 {
     H = A;
+
+    printf("LD H, A\n");
 }
 
 // =================================================================================================
@@ -957,6 +1159,8 @@ void Cpu::op_LD_H_A()
 void Cpu::op_LD_L_B()
 {
     L = B;
+
+    printf("LD L, B\n");
 }
 
 // =================================================================================================
@@ -964,6 +1168,8 @@ void Cpu::op_LD_L_B()
 void Cpu::op_LD_L_C()
 {
     L = C;
+
+    printf("LD L, C\n");
 }
 
 // =================================================================================================
@@ -971,6 +1177,8 @@ void Cpu::op_LD_L_C()
 void Cpu::op_LD_L_D()
 {
     L = D;
+
+    printf("LD L, D\n");
 }
 
 // =================================================================================================
@@ -978,6 +1186,8 @@ void Cpu::op_LD_L_D()
 void Cpu::op_LD_L_E()
 {
     L = E;
+
+    printf("LD L, E\n");
 }
 
 // =================================================================================================
@@ -985,6 +1195,8 @@ void Cpu::op_LD_L_E()
 void Cpu::op_LD_L_H()
 {
     L = H;
+
+    printf("LD L, H\n");
 }
 
 // =================================================================================================
@@ -992,6 +1204,7 @@ void Cpu::op_LD_L_H()
 void Cpu::op_LD_L_L()
 {
     // Avoid self assignment.
+    printf("LD L, L\n");
 }
 
 // =================================================================================================
@@ -999,6 +1212,8 @@ void Cpu::op_LD_L_L()
 void Cpu::op_LD_L__HL__()
 {
     L = fetchByteFromAddress(HL);
+
+    printf("LD L, (HL)\n");
 }
 
 // =================================================================================================
@@ -1006,6 +1221,8 @@ void Cpu::op_LD_L__HL__()
 void Cpu::op_LD_L_A()
 {
     L = A;
+
+    printf("LD L, A\n");
 }
 
 // =================================================================================================
@@ -1013,6 +1230,8 @@ void Cpu::op_LD_L_A()
 void Cpu::op_LD__HL__B()
 {
     loadByteToAddress(HL, B);
+
+    printf("LD (HL), B\n");
 }
 
 // =================================================================================================
@@ -1020,6 +1239,8 @@ void Cpu::op_LD__HL__B()
 void Cpu::op_LD__HL__C()
 {
     loadByteToAddress(HL, C);
+
+    printf("LD (HL), C\n");
 }
 
 // =================================================================================================
@@ -1027,6 +1248,8 @@ void Cpu::op_LD__HL__C()
 void Cpu::op_LD__HL__D()
 {
     loadByteToAddress(HL, D);
+
+    printf("LD (HL), D\n");
 }
 
 // =================================================================================================
@@ -1034,6 +1257,8 @@ void Cpu::op_LD__HL__D()
 void Cpu::op_LD__HL__E()
 {
     loadByteToAddress(HL, E);
+
+    printf("LD (HL), E\n");
 }
 
 // =================================================================================================
@@ -1041,6 +1266,8 @@ void Cpu::op_LD__HL__E()
 void Cpu::op_LD__HL__H()
 {
     loadByteToAddress(HL, E);
+
+    printf("LD (HL), H\n");
 }
 
 // =================================================================================================
@@ -1048,6 +1275,8 @@ void Cpu::op_LD__HL__H()
 void Cpu::op_LD__HL__L()
 {
     loadByteToAddress(HL, L);
+
+    printf("LD (HL), L\n");
 }
 
 // =================================================================================================
@@ -1055,6 +1284,8 @@ void Cpu::op_LD__HL__L()
 void Cpu::op_HALT()
 {
     waitForInterrupt();
+
+    printf("HALT\n");
 }
 
 // =================================================================================================
@@ -1062,6 +1293,8 @@ void Cpu::op_HALT()
 void Cpu::op_LD__HL__A()
 {
     loadByteToAddress(HL, A);
+
+    printf("LD (HL), A\n");
 }
 
 // =================================================================================================
@@ -1069,6 +1302,8 @@ void Cpu::op_LD__HL__A()
 void Cpu::op_LD_A_B()
 {
     A = B;
+
+    printf("LD A, B\n");
 }
 
 // =================================================================================================
@@ -1076,6 +1311,8 @@ void Cpu::op_LD_A_B()
 void Cpu::op_LD_A_C()
 {
     A = C;
+
+    printf("LD A, C\n");
 }
 
 // =================================================================================================
@@ -1083,6 +1320,8 @@ void Cpu::op_LD_A_C()
 void Cpu::op_LD_A_D()
 {
     A = D;
+
+    printf("LD A, D\n");
 }
 
 // =================================================================================================
@@ -1090,6 +1329,8 @@ void Cpu::op_LD_A_D()
 void Cpu::op_LD_A_E()
 {
     A = E;
+
+    printf("LD A, E\n");
 }
 
 // =================================================================================================
@@ -1097,6 +1338,8 @@ void Cpu::op_LD_A_E()
 void Cpu::op_LD_A_H()
 {
     A = H;
+
+    printf("LD A, H\n");
 }
 
 // =================================================================================================
@@ -1104,6 +1347,8 @@ void Cpu::op_LD_A_H()
 void Cpu::op_LD_A_L()
 {
     A = L;
+
+    printf("LD A, L\n");
 }
 
 // =================================================================================================
@@ -1111,6 +1356,8 @@ void Cpu::op_LD_A_L()
 void Cpu::op_LD_A__HL__()
 {
     A = fetchByteFromAddress(HL);
+
+    printf("LD A, (HL)\n");
 }
 
 // =================================================================================================
@@ -1118,6 +1365,7 @@ void Cpu::op_LD_A__HL__()
 void Cpu::op_LD_A_A()
 {
     // Avoid self assignment.
+    printf("LD A, A\n");
 }
 
 // =================================================================================================
@@ -1135,6 +1383,8 @@ void Cpu::op_ADD_A_B()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("ADD A, B\n");
 }
 
 // =================================================================================================
@@ -1152,6 +1402,8 @@ void Cpu::op_ADD_A_C()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("ADD A, C\n");
 }
 
 // =================================================================================================
@@ -1169,6 +1421,8 @@ void Cpu::op_ADD_A_D()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("ADD A, D\n");
 }
 
 // =================================================================================================
@@ -1186,6 +1440,8 @@ void Cpu::op_ADD_A_E()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("ADD A, E\n");
 }
 
 // =================================================================================================
@@ -1203,6 +1459,8 @@ void Cpu::op_ADD_A_H()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("ADD A, H\n");
 }
 
 // =================================================================================================
@@ -1220,6 +1478,8 @@ void Cpu::op_ADD_A_L()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("ADD A, L\n");
 }
 
 // =================================================================================================
@@ -1239,6 +1499,8 @@ void Cpu::op_ADD_A__HL__()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("ADD A, (HL)\n");
 }
 
 // =================================================================================================
@@ -1256,6 +1518,8 @@ void Cpu::op_ADD_A_A()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("ADD A, A\n");
 }
 
 // =================================================================================================
@@ -1278,6 +1542,8 @@ void Cpu::op_ADC_A_B()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("ADC A, B\n");
 }
 
 // =================================================================================================
@@ -1300,6 +1566,8 @@ void Cpu::op_ADC_A_C()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("ADC A, C\n");
 }
 
 // =================================================================================================
@@ -1322,6 +1590,8 @@ void Cpu::op_ADC_A_D()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("ADC A, D\n");
 }
 
 // =================================================================================================
@@ -1344,6 +1614,8 @@ void Cpu::op_ADC_A_E()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("ADC A, E\n");
 }
 
 // =================================================================================================
@@ -1366,6 +1638,8 @@ void Cpu::op_ADC_A_H()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("ADC A, H\n");
 }
 
 // =================================================================================================
@@ -1388,6 +1662,8 @@ void Cpu::op_ADC_A_L()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("ADC A, L\n");
 }
 
 // =================================================================================================
@@ -1411,6 +1687,8 @@ void Cpu::op_ADC_A__HL__()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("ADC A, (HL)\n");
 }
 
 // =================================================================================================
@@ -1433,6 +1711,8 @@ void Cpu::op_ADC_A_A()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("ADC A, A\n");
 }
 
 // =================================================================================================
@@ -1450,6 +1730,8 @@ void Cpu::op_SUB_B()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("SUB B\n");
 }
 
 // =================================================================================================
@@ -1467,6 +1749,8 @@ void Cpu::op_SUB_C()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("SUB C\n");
 }
 
 // =================================================================================================
@@ -1484,6 +1768,8 @@ void Cpu::op_SUB_D()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("SUB D\n");
 }
 
 // =================================================================================================
@@ -1501,6 +1787,8 @@ void Cpu::op_SUB_E()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("SUB E\n");
 }
 
 // =================================================================================================
@@ -1518,6 +1806,8 @@ void Cpu::op_SUB_H()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("SUB H\n");
 }
 
 // =================================================================================================
@@ -1535,6 +1825,8 @@ void Cpu::op_SUB_L()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("SUB L\n");
 }
 
 // =================================================================================================
@@ -1554,6 +1846,8 @@ void Cpu::op_SUB__HL__()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("SUB (HL)\n");
 }
 
 // =================================================================================================
@@ -1569,6 +1863,8 @@ void Cpu::op_SUB_A()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, true);
+
+    printf("SUB A\n");
 }
 
 // =================================================================================================
@@ -1589,6 +1885,8 @@ void Cpu::op_SBC_A_B()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("SBC A, B\n");
 }
 
 // =================================================================================================
@@ -1609,6 +1907,8 @@ void Cpu::op_SBC_A_C()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("SBC A, C\n");
 }
 
 // =================================================================================================
@@ -1629,6 +1929,8 @@ void Cpu::op_SBC_A_D()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("SBC A, D\n");
 }
 
 // =================================================================================================
@@ -1649,6 +1951,8 @@ void Cpu::op_SBC_A_E()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("SBC A, E\n");
 }
 
 // =================================================================================================
@@ -1669,6 +1973,8 @@ void Cpu::op_SBC_A_H()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("SBC A, H\n");
 }
 
 // =================================================================================================
@@ -1689,6 +1995,8 @@ void Cpu::op_SBC_A_L()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("SBC A, L\n");
 }
 
 // =================================================================================================
@@ -1710,6 +2018,8 @@ void Cpu::op_SBC_A__HL__()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("SBC A, (HL)\n");
 }
 
 // =================================================================================================
@@ -1730,6 +2040,8 @@ void Cpu::op_SBC_A_A()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("SBC A, A\n");
 }
 
 // =================================================================================================
@@ -1744,6 +2056,8 @@ void Cpu::op_AND_B()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("AND B\n");
 }
 
 // =================================================================================================
@@ -1758,6 +2072,8 @@ void Cpu::op_AND_C()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("AND C\n");
 }
 
 // =================================================================================================
@@ -1772,6 +2088,8 @@ void Cpu::op_AND_D()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("AND D\n");
 }
 
 // =================================================================================================
@@ -1786,6 +2104,8 @@ void Cpu::op_AND_E()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("AND E\n");
 }
 
 // =================================================================================================
@@ -1800,6 +2120,8 @@ void Cpu::op_AND_H()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("AND H\n");
 }
 
 // =================================================================================================
@@ -1814,6 +2136,8 @@ void Cpu::op_AND_L()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("AND L\n");
 }
 
 // =================================================================================================
@@ -1830,6 +2154,8 @@ void Cpu::op_AND__HL__()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("AND (HL)\n");
 }
 
 // =================================================================================================
@@ -1844,6 +2170,8 @@ void Cpu::op_AND_A()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("AND A\n");
 }
 
 // =================================================================================================
@@ -1856,6 +2184,8 @@ void Cpu::op_XOR_B()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("XOR B\n");
 }
 
 // =================================================================================================
@@ -1868,6 +2198,8 @@ void Cpu::op_XOR_C()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("XOR C\n");
 }
 
 // =================================================================================================
@@ -1880,6 +2212,8 @@ void Cpu::op_XOR_D()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("XOR D\n");
 }
 
 // =================================================================================================
@@ -1892,6 +2226,8 @@ void Cpu::op_XOR_E()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("XOR E\n");
 }
 
 // =================================================================================================
@@ -1904,6 +2240,8 @@ void Cpu::op_XOR_H()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("XOR H\n");
 }
 
 // =================================================================================================
@@ -1916,6 +2254,8 @@ void Cpu::op_XOR_L()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("XOR L\n");
 }
 
 // =================================================================================================
@@ -1929,6 +2269,8 @@ void Cpu::op_XOR__HL__()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("XOR (HL)\n");
 }
 
 // =================================================================================================
@@ -1942,6 +2284,8 @@ void Cpu::op_XOR_A()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, true);
+
+    printf("XOR A\n");
 }
 
 // =================================================================================================
@@ -1954,6 +2298,8 @@ void Cpu::op_OR_B()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("OR B\n");
 }
 
 // =================================================================================================
@@ -1966,6 +2312,8 @@ void Cpu::op_OR_C()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("OR C\n");
 }
 
 // =================================================================================================
@@ -1978,6 +2326,8 @@ void Cpu::op_OR_D()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("OR D\n");
 }
 
 // =================================================================================================
@@ -1990,6 +2340,8 @@ void Cpu::op_OR_E()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("OR E\n");
 }
 
 // =================================================================================================
@@ -2002,6 +2354,8 @@ void Cpu::op_OR_H()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("OR H\n");
 }
 
 // =================================================================================================
@@ -2014,6 +2368,8 @@ void Cpu::op_OR_L()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("OR L\n");
 }
 
 // =================================================================================================
@@ -2027,6 +2383,8 @@ void Cpu::op_OR__HL__()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("OR (HL)\n");
 }
 
 // =================================================================================================
@@ -2039,6 +2397,8 @@ void Cpu::op_OR_A()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("OR A\n");
 }
 
 // =================================================================================================
@@ -2051,6 +2411,8 @@ void Cpu::op_CP_B()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == B));
+
+    printf("CP B\n");
 }
 
 // =================================================================================================
@@ -2063,6 +2425,8 @@ void Cpu::op_CP_C()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == C));
+
+    printf("CP C\n");
 }
 
 // =================================================================================================
@@ -2075,6 +2439,8 @@ void Cpu::op_CP_D()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == D));
+
+    printf("CP D\n");
 }
 
 // =================================================================================================
@@ -2087,6 +2453,8 @@ void Cpu::op_CP_E()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == E));
+
+    printf("CP E\n");
 }
 
 // =================================================================================================
@@ -2099,6 +2467,8 @@ void Cpu::op_CP_H()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == H));
+
+    printf("CP H\n");
 }
 
 // =================================================================================================
@@ -2111,6 +2481,8 @@ void Cpu::op_CP_L()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == L));
+
+    printf("CP L\n");
 }
 
 // =================================================================================================
@@ -2125,6 +2497,8 @@ void Cpu::op_CP__HL__()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == byte));
+
+    printf("CP (HL)\n");
 }
 
 // =================================================================================================
@@ -2137,6 +2511,8 @@ void Cpu::op_CP_A()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, true);
+
+    printf("CP A\n");
 }
 
 // =================================================================================================
@@ -2153,6 +2529,8 @@ void Cpu::op_RET_NZ()
 
         PC = addr;
     }
+
+    printf("RET NZ\n");
 }
 
 // =================================================================================================
@@ -2165,6 +2543,8 @@ void Cpu::op_POP_BC()
     BC = cbutil::combineTowBytes(lByte, hByte);
 
     SP += 2;
+
+    printf("POP BC\n");
 }
 
 // =================================================================================================
@@ -2175,6 +2555,8 @@ void Cpu::op_JP_NZ_a16()
     {
         PC = cbutil::combineTowBytes(MBR[0], MBR[1]);
     }
+
+    printf("JP NZ, $%x\n", PC);
 }
 
 // =================================================================================================
@@ -2182,6 +2564,8 @@ void Cpu::op_JP_NZ_a16()
 void Cpu::op_JP_a16()
 {
     PC = cbutil::combineTowBytes(MBR[0], MBR[1]);
+
+    printf("JP $%x\n", PC);
 }
 
 // =================================================================================================
@@ -2195,6 +2579,8 @@ void Cpu::op_CALL_NZ_a16()
 
         PC = cbutil::combineTowBytes(MBR[0], MBR[1]);
     }
+
+    printf("CALL NZ, $%x\n", PC);
 }
 
 // =================================================================================================
@@ -2204,6 +2590,8 @@ void Cpu::op_PUSH_BC()
     loadWordToAddress(BC, SP - 2);
 
     SP -= 2;
+
+    printf("PUSH BC\n");
 }
 
 // =================================================================================================
@@ -2223,6 +2611,8 @@ void Cpu::op_ADD_A_d8()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("ADD A, $%x\n", byte);
 }
 
 // =================================================================================================
@@ -2233,6 +2623,8 @@ void Cpu::op_RST_00H()
     SP -= 2;
 
     PC = 0x0;
+
+    printf("RST 00H\n");
 }
 
 // =================================================================================================
@@ -2249,6 +2641,8 @@ void Cpu::op_RET_Z()
 
         PC = addr;
     }
+
+    printf("RET Z\n");
 }
 
 // =================================================================================================
@@ -2262,6 +2656,8 @@ void Cpu::op_RET()
     const uint16_t addr = cbutil::combineTowBytes(lByte, hByte);
 
     PC = addr;
+
+    printf("RET\n");
 }
 
 // =================================================================================================
@@ -2272,6 +2668,8 @@ void Cpu::op_JP_Z_a16()
     {
         PC = cbutil::combineTowBytes(MBR[0], MBR[1]);
     }
+
+    printf("JP Z, $%x\n", PC);
 }
 
 // =================================================================================================
@@ -2279,6 +2677,8 @@ void Cpu::op_JP_Z_a16()
 void Cpu::op_PREFIX_CB()
 {
     m_inPrefixCBOp = true;
+
+    printf("CB ");
 }
 
 // =================================================================================================
@@ -2292,6 +2692,8 @@ void Cpu::op_CALL_Z_a16()
 
         PC = cbutil::combineTowBytes(MBR[0], MBR[1]);
     }
+
+    printf("CALL Z, $%x\n", PC);
 }
 
 // =================================================================================================
@@ -2302,6 +2704,8 @@ void Cpu::op_CALL_a16()
     SP -= 2;
 
     PC = cbutil::combineTowBytes(MBR[0], MBR[1]);
+
+    printf("CALL $%x\n", PC);
 }
 
 // =================================================================================================
@@ -2326,6 +2730,8 @@ void Cpu::op_ADC_A_d8()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("ADC A, $%x\n", byte);
 }
 
 // =================================================================================================
@@ -2336,6 +2742,8 @@ void Cpu::op_RST_08H()
     SP -= 2;
 
     PC = 0x8;
+
+    printf("RST 08H\n");
 }
 
 // =================================================================================================
@@ -2352,6 +2760,8 @@ void Cpu::op_RET_NC()
 
         PC = addr;
     }
+
+    printf("RET NC\n");
 }
 
 // =================================================================================================
@@ -2364,6 +2774,8 @@ void Cpu::op_POP_DE()
     DE = cbutil::combineTowBytes(lByte, hByte);
 
     SP += 2;
+
+    printf("POP DE\n");
 }
 
 // =================================================================================================
@@ -2374,6 +2786,8 @@ void Cpu::op_JP_NC_a16()
     {
         PC = cbutil::combineTowBytes(MBR[0], MBR[1]);
     }
+
+    printf("JP NC, $%x\n", cbutil::combineTowBytes(MBR[0], MBR[1]));
 }
 
 // =================================================================================================
@@ -2387,6 +2801,8 @@ void Cpu::op_CALL_NC_a16()
 
         PC = cbutil::combineTowBytes(MBR[0], MBR[1]);
     }
+
+    printf("CALL NC, $%x\n", cbutil::combineTowBytes(MBR[0], MBR[1]));
 }
 
 // =================================================================================================
@@ -2396,6 +2812,8 @@ void Cpu::op_PUSH_DE()
     loadWordToAddress(DE, SP - 2);
 
     SP -= 2;
+
+    printf("PUSH DE\n");
 }
 
 // =================================================================================================
@@ -2415,6 +2833,8 @@ void Cpu::op_SUB_d8()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("SUB $%d\n", byte);
 }
 
 // =================================================================================================
@@ -2425,6 +2845,8 @@ void Cpu::op_RST_10H()
     SP -= 2;
 
     PC = 0x10;
+
+    printf("RST 10H\n");
 }
 
 // =================================================================================================
@@ -2441,6 +2863,8 @@ void Cpu::op_RET_C()
 
         PC = addr;
     }
+
+    printf("RET C\n");
 }
 
 // =================================================================================================
@@ -2456,6 +2880,8 @@ void Cpu::op_RETI()
     PC = addr;
 
     enableInterrupts();
+
+    printf("RETI\n");
 }
 
 // =================================================================================================
@@ -2466,6 +2892,8 @@ void Cpu::op_JP_C_a16()
     {
         PC = cbutil::combineTowBytes(MBR[0], MBR[1]);
     }
+
+    printf("JP C, $%x\n", cbutil::combineTowBytes(MBR[0], MBR[1]));
 }
 
 // =================================================================================================
@@ -2479,6 +2907,8 @@ void Cpu::op_CALL_C_a16()
 
         PC = cbutil::combineTowBytes(MBR[0], MBR[1]);
     }
+
+    printf("CALL C, $%x\n", cbutil::combineTowBytes(MBR[0], MBR[1]));
 }
 
 // =================================================================================================
@@ -2501,6 +2931,8 @@ void Cpu::op_SBC_A_d8()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("SBC A, $%x\n", byte);
 }
 
 // =================================================================================================
@@ -2511,6 +2943,8 @@ void Cpu::op_RST_18H()
     SP -= 2;
 
     PC = 0x18;
+
+    printf("RST 18H\n");
 }
 
 // =================================================================================================
@@ -2519,6 +2953,8 @@ void Cpu::op_LDH__a8__A()
 {
     const uint16_t addr = MBR[0] + 0xFF00;
     loadByteToAddress(addr, A);
+
+    printf("LDH ($%x), A\n", MBR[0]);
 }
 
 // =================================================================================================
@@ -2531,6 +2967,8 @@ void Cpu::op_POP_HL()
     HL = cbutil::combineTowBytes(lByte, hByte);
 
     SP += 2;
+
+    printf("POP HL\n");
 }
 
 // =================================================================================================
@@ -2539,6 +2977,8 @@ void Cpu::op_LD__C__A()
 {
     const uint16_t addr = C + 0xFF00;
     loadByteToAddress(addr, A);
+
+    printf("LD (C), A\n");
 }
 
 // =================================================================================================
@@ -2548,6 +2988,8 @@ void Cpu::op_PUSH_HL()
     loadWordToAddress(HL, SP - 2);
 
     SP -= 2;
+
+    printf("PUSH HL\n");
 }
 
 // =================================================================================================
@@ -2562,6 +3004,8 @@ void Cpu::op_AND_d8()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("AND $%x\n", MBR[0]);
 }
 
 // =================================================================================================
@@ -2572,6 +3016,8 @@ void Cpu::op_RST_20H()
     SP -= 2;
 
     PC = 0x20;
+
+    printf("RST 20H\n");
 }
 
 // =================================================================================================
@@ -2589,6 +3035,8 @@ void Cpu::op_ADD_SP_r8()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, false);
+
+    printf("ADD SP, $%x\n", byte);
 }
 
 // =================================================================================================
@@ -2596,6 +3044,8 @@ void Cpu::op_ADD_SP_r8()
 void Cpu::op_JP__HL__()
 {
     PC = HL;
+
+    printf("JP (HL)\n");
 }
 
 // =================================================================================================
@@ -2605,6 +3055,8 @@ void Cpu::op_LD__a16__A()
     const uint16_t addr = cbutil::combineTowBytes(MBR[0], MBR[1]);
 
     loadByteToAddress(addr, A);
+
+    printf("LD ($%x), A\n", addr);
 }
 
 // =================================================================================================
@@ -2617,6 +3069,8 @@ void Cpu::op_XOR_d8()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("XOR $%x\n", MBR[0]);
 }
 
 // =================================================================================================
@@ -2627,6 +3081,8 @@ void Cpu::op_RST_28H()
     SP -= 2;
 
     PC = 0x28;
+
+    printf("RST 28H\n");
 }
 
 // =================================================================================================
@@ -2635,6 +3091,8 @@ void Cpu::op_LDH_A__a8__()
 {
     const uint16_t addr = MBR[0] + 0xFF00;
     A = fetchByteFromAddress(addr);
+
+    printf("LDH A, ($%x)\n", MBR[0]);
 }
 
 // =================================================================================================
@@ -2647,6 +3105,8 @@ void Cpu::op_POP_AF()
     AF = cbutil::combineTowBytes(lByte, hByte);
 
     SP += 2;
+
+    printf("POP AF\n");
 }
 
 // =================================================================================================
@@ -2656,6 +3116,8 @@ void Cpu::op_LD_A__C__()
     const uint16_t addr = C + 0xFF00;
 
     A = fetchByteFromAddress(addr);
+
+    printf("LD A, (C)\n");
 }
 
 // =================================================================================================
@@ -2663,6 +3125,8 @@ void Cpu::op_LD_A__C__()
 void Cpu::op_DI()
 {
     disableInterrupts();
+
+    printf("DI\n");
 }
 
 // =================================================================================================
@@ -2672,6 +3136,8 @@ void Cpu::op_PUSH_AF()
     loadWordToAddress(AF, SP - 2);
 
     SP -= 2;
+
+    printf("PUSH AF\n");
 }
 
 // =================================================================================================
@@ -2684,6 +3150,8 @@ void Cpu::op_OR_d8()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("OR $%x\n", MBR[0]);
 }
 
 // =================================================================================================
@@ -2694,6 +3162,8 @@ void Cpu::op_RST_30H()
     SP -= 2;
 
     PC = 0x30;
+
+    printf("RST 30H\n");
 }
 
 // =================================================================================================
@@ -2712,6 +3182,8 @@ void Cpu::op_LD_HL_SP_plus_r8()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, halfCarry);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
+
+    printf("LD HL, SP+$%x\n", byte);
 }
 
 // =================================================================================================
@@ -2719,6 +3191,8 @@ void Cpu::op_LD_HL_SP_plus_r8()
 void Cpu::op_LD_SP_HL()
 {
     SP = HL;
+
+    printf("LD SP, HL\n");
 }
 
 // =================================================================================================
@@ -2727,6 +3201,8 @@ void Cpu::op_LD_A__a16__()
 {
     const uint16_t addr = cbutil::combineTowBytes(MBR[0], MBR[1]);
     A = fetchByteFromAddress(addr);
+
+    printf("LD A, ($%x)\n", addr);
 }
 
 // =================================================================================================
@@ -2734,6 +3210,8 @@ void Cpu::op_LD_A__a16__()
 void Cpu::op_EI()
 {
     enableInterrupts();
+
+    printf("EI\n");
 }
 
 // =================================================================================================
@@ -2747,6 +3225,8 @@ void Cpu::op_CP_d8()
     setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, noHalfBorrow);
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == byte));
+
+    printf("CP $%x\n", byte);
 }
 
 // =================================================================================================
@@ -2757,4 +3237,6 @@ void Cpu::op_RST_38H()
     SP -= 2;
 
     PC = 0x38;
+
+    printf("RST 38H\n");
 }

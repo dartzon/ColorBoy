@@ -18,19 +18,19 @@
 /// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 /// SOFTWARE.
 
-/// \file      main.cpp
+/// \file      console.cpp
 ///
 /// \author    Othmane AIT EL CADI - <dartzon@gmail.com>
-/// \date      17-05-2018
+/// \date      21-10-2018
 
 // Local includes.
 #include "console.h"
-#include <vector>
 
-int main()
+void Console::powerOn(void)
 {
-    Console gameboy(GBType::GBT_gb);
-    gameboy.powerOn();
-
-    return 0;
+    m_poweredOn = true;
+    while (m_poweredOn == true)
+    {
+        m_cpu.run();
+    }
 }

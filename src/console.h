@@ -39,12 +39,16 @@ public:
     /// \brief Constructor.
     ///
     /// \param type The Game Boy type to emulate.
-    Console(const GBType type) : config(type), m_cpu(m_mmu), m_mmu(m_memory) {}
+    Console(const GBType type) : config(type), m_mmu(m_memory), m_cpu(m_mmu) {}
+
+    /// \brief Power on the console.
+    void powerOn(void);
 
 private:
     GBConfig config;  ///< Console's configuration.
-    Cpu m_cpu;        ///< Console's CPU.
     Mmu m_mmu;        ///< Console's Memory management unit.
+    Cpu m_cpu;        ///< Console's CPU.
+    bool m_poweredOn;
 
     // =============================================================================================
     //   General Memory Map:
