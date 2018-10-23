@@ -36,8 +36,8 @@ Cpu::Cpu(Mmu& mmu) :
     A(m_registers[1]), B(m_registers[3]), C(m_registers[2]), D(m_registers[5]), E(m_registers[4]),
     F(m_registers[0]), H(m_registers[7]), L(m_registers[6]), AF(reinterpret_cast<uint16_t&>(F)),
     BC(reinterpret_cast<uint16_t&>(C)), DE(reinterpret_cast<uint16_t&>(E)),
-    HL(reinterpret_cast<uint16_t&>(L)), SP(*reinterpret_cast<uint16_t*>(&H + 8)),
-    PC(*reinterpret_cast<uint16_t*>(&H + 24)), m_mmu(mmu),
+    HL(reinterpret_cast<uint16_t&>(L)), SP(reinterpret_cast<uint16_t&>(m_registers[8])),
+    PC(reinterpret_cast<uint16_t&>(m_registers[10])), m_mmu(mmu),
     m_cpuCycleState(InstructionCycleState::eFetch), m_interruptsEnabled(true), m_inPrefixCBOp(false)
 {
     PC = 0x0;
@@ -66,8 +66,8 @@ void Cpu::fetch()
     }
     else
     {
-        // Prefix CB instructions are all 2 bytes long.
-        opLength = 2;
+        // Prefix CB instructions are all 1 byte long.
+        opLength = 1;
     }
 
     // Save the current address pointer by PC.
@@ -136,7 +136,7 @@ void Cpu::decode()
     case 0xF2:
     case 0xFA:
         // Fetch data from the memory address stored in MBR.
-        MBR[0] = fetchByteFromAddress(cbutil::combineTowBytes(MBR[1], MBR[0]));
+        MBR[0] = fetchByteFromAddress(cbutil::combineTwoBytes(MBR[1], MBR[0]));
         break;
     }
 
@@ -184,7 +184,7 @@ void Cpu::switchState(const InstructionCycleState state)
 
 // =================================================================================================
 
-void Cpu::run()
+bool Cpu::run()
 {
     switch (m_cpuCycleState)
     {
@@ -193,6 +193,8 @@ void Cpu::run()
     case InstructionCycleState::eDecode: decode(); break;
     case InstructionCycleState::eExecute: execute(); break;
     }
+
+    return true;
 }
 
 // =================================================================================================
@@ -217,14 +219,14 @@ uint8_t Cpu::fetchByteFromAddress(const uint16_t addr)
 
 // =================================================================================================
 
-void Cpu::loadByteToAddress(const uint16_t addr, const uint8_t data)
+void Cpu::loadByteToAddress(const uint8_t data, const uint16_t addr)
 {
-    m_mmu.writeByte(addr, data);
+    m_mmu.writeByte(data, addr);
 }
 
 // =================================================================================================
 
-void Cpu::loadWordToAddress(const uint16_t addr, const uint16_t data)
+void Cpu::loadWordToAddress(const uint16_t data, const uint16_t addr)
 {
-    m_mmu.writeWord(addr, data);
+    m_mmu.writeWord(data, addr);
 }
