@@ -1079,6 +1079,8 @@ void Cpu::op_BIT_7_E()
 void Cpu::op_BIT_7_H()
 {
     execBIT(H, 7);
+
+    printf("0x%04x\t BIT 7, H\n", m_currentInstructionAddr - 1);
 }
 
 // =================================================================================================
