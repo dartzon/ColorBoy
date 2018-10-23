@@ -45,12 +45,25 @@ public:
     explicit Cpu(Mmu& mmu);
 
     /// \brief Execute one instruction at a time.
-    void run();
+    ///
+    /// \return true if the CPU is still executing instructions, false otherwise.
+    bool run();
 
 private:
     // =============================================================================================
     // Gameboy CPU (Sharp LR35902) instruction set.
     // =============================================================================================
+
+    /// \brief Push a word to the stack.
+    ///
+    /// \param word the word to push.
+    void execPUSH(const uint16_t word);
+
+    /// \brief Pop a word from the stack.
+    ///
+    /// \return return the next word from the stack.
+    uint16_t execPOP();
+
     void op_NOP();               ///< opcode: 0x00
     void op_LD_BC_d16();         ///< opcode: 0x01
     void op_LD__BC__A();         ///< opcode: 0x02
@@ -658,15 +671,15 @@ private:
 
     /// \brief Store a byte in a specific memory address.
     ///
-    /// \param addr address of the memory location where the byte will be stored.
     /// \param data the byte to store.
-    void loadByteToAddress(const uint16_t addr, const uint8_t data);
+    /// \param addr address of the memory location where the byte will be stored.
+    void loadByteToAddress(const uint8_t data, const uint16_t addr);
 
     /// \brief Store a word in a specific memory address.
     ///
-    /// \param addr address of the memory location where the byte will be stored.
     /// \param data the word to store.
-    void loadWordToAddress(const uint16_t addr, const uint16_t data);
+    /// \param addr address of the memory location where the byte will be stored.
+    void loadWordToAddress(const uint16_t data, const uint16_t addr);
 
     /// \brief Specify an instruction's size in bytes and the number of CPU cycles it takes to
     /// execute.
@@ -804,8 +817,8 @@ private:
          1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
          1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
          1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 1, 2, 1, 1, 1, 3,
-         1, 3, 3, 2, 1, 1, 1, 3, 0, 3, 1, 2, 1, 1, 1, 3, 0, 3, 0, 2, 1, 2, 1, 2, 0, 0, 1, 2, 1,
-         2, 1, 3, 0, 0, 0, 2, 1, 2, 1, 2, 1, 0, 1, 2, 1, 2, 1, 3, 1, 0, 0, 2, 1};
+         1, 3, 3, 2, 1, 1, 1, 3, 0, 3, 1, 2, 1, 1, 1, 3, 0, 3, 0, 2, 1, 2, 1, 1, 0, 0, 1, 2, 1,
+         2, 1, 3, 0, 0, 0, 2, 1, 2, 1, 1, 1, 0, 1, 2, 1, 2, 1, 3, 1, 0, 0, 2, 1};
 
     ///< std::function binding for each prefix CB CPU instructions's method.
     std::array<std::function<void()>, 0x100> m_opsFunctions =
