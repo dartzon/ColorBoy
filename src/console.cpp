@@ -29,8 +29,7 @@
 void Console::powerOn(void)
 {
     m_poweredOn = true;
-    while (m_poweredOn == true)
+    while ((m_poweredOn == true) && (m_cpu.run() == true))
     {
-        m_cpu.run();
     }
 }
