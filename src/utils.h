@@ -91,7 +91,7 @@ namespace cbutil
 /// \param hByte High byte.
 ///
 /// \return A word where byte1 and byte2 are combined.
-inline uint16_t combineTowBytes(const uint8_t lByte, const uint8_t hByte)
+inline uint16_t combineTwoBytes(const uint8_t lByte, const uint8_t hByte)
 {
     return (hByte << 8) | lByte;
 }
