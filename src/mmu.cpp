@@ -50,7 +50,7 @@ uint16_t Mmu::readWord(const uint16_t address) const
 
 // =================================================================================================
 
-void Mmu::writeByte(const uint16_t address, const uint8_t byte)
+void Mmu::writeByte(const uint8_t byte, const uint16_t address)
 {
     if ((address >= 0) && (address <= m_memory.size() - 1))
     {
@@ -60,7 +60,7 @@ void Mmu::writeByte(const uint16_t address, const uint8_t byte)
 
 // =================================================================================================
 
-void Mmu::writeWord(const uint16_t address, const uint16_t word)
+void Mmu::writeWord(const uint16_t word, const uint16_t address)
 {
     if ((address >= 0) && (address <= m_memory.size() - 1))
     {

@@ -59,15 +59,15 @@ public:
 
     /// \brief Write byte to memory address.
     ///
-    /// \param address Memory address to write into.
     /// \param byte Value to write.
-    void writeByte(const uint16_t address, const uint8_t byte);
+    /// \param address Memory address to write into.
+    void writeByte(const uint8_t byte, const uint16_t address);
 
     /// \brief Write word to memory address.
     ///
-    /// \param address Memory address to write into
     /// \param word Value to write.
-    void writeWord(const uint16_t address, const uint16_t word);
+    /// \param address Memory address to write into
+    void writeWord(const uint16_t word, const uint16_t address);
 
     /// \brief Map data from a buffer to the internal RAM.
     ///
