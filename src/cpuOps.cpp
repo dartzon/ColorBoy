@@ -519,7 +519,38 @@ void Cpu::op_LD_H_d8()
 
 void Cpu::op_DAA()
 {
-    NOTYETIMPLEMENTED();
+    const bool substractOccured = checkFlagRegisterBit(FlagRegisterBits::eSubtractFlag);
+    const bool carryOccured = checkFlagRegisterBit(FlagRegisterBits::eCarryFlag);
+    const bool halfCarryOccured = checkFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag);
+
+    if (substractOccured == false)
+    {
+        if ((carryOccured == true) || (A > 0x99))
+        {
+            A += 0x60;
+            setFlagRegisterBit(FlagRegisterBits::eCarryFlag, true);
+        }
+
+        if ((halfCarryOccured == true) || ((A & 0x0f) > 0x09))
+        {
+            A += 0x06;
+        }
+    }
+    else
+    {
+        if (carryOccured == true)
+        {
+            A -= 0x60;
+        }
+
+        if (halfCarryOccured == true)
+        {
+            A -= 0x06;
+        }
+    }
+
+    setFlagRegisterBit(FlagRegisterBits::eHalfCarryFlag, false);
+    setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (A == 0));
 
     printf("0x%04x\t DAA\n", m_currentInstructionAddr);
 }
