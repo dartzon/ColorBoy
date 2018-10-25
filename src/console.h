@@ -32,6 +32,8 @@
 #include "mmu.h"
 #include "cpu.h"
 
+#include <filesystem>
+
 /// \brief Representation of a Game Boy console with its internal components.
 class Console
 {
@@ -45,6 +47,8 @@ public:
     void powerOn(void);
 
 private:
+    void readCartridgeROM(const std::filesystem::path& romPath);
+
     GBConfig config;  ///< Console's configuration.
     Mmu m_mmu;        ///< Console's Memory management unit.
     Cpu m_cpu;        ///< Console's CPU.
