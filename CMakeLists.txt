@@ -48,6 +48,7 @@ file(GLOB_RECURSE PROJECT_SRC_LST ${PROJECT_SOURCE_DIR}/src/*.h ${PROJECT_SOURCE
 add_executable(colorboy ${PROJECT_SRC_LST})
 target_compile_options(colorboy PUBLIC $<$<CONFIG:DEBUG>:-DCOLORBOY_DEBUG>)
 target_include_directories(colorboy PUBLIC ${PROJECT_SOURCE_DIR}/src/)
+target_link_libraries(colorboy stdc++fs)
 
 ###############################################################################
 ## Unit test target.
