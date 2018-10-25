@@ -42,7 +42,11 @@ Cpu::Cpu(Mmu& mmu) :
 {
     PC = 0x0;
 
-    m_mmu.mapDataBufferToMemory(m_internalROM, 0x0);
+    // Copy the CPU's ROM to the internal memory at address 0x0.
+    m_mmu.mapDataBufferToMemory(m_CPUROM, 0x0);
+
+    // Use the internal ROM.
+    m_mmu.writeByte(0x0, Mmu::eHIO_RomSwitch);
 }
 
 // =================================================================================================
