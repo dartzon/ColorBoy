@@ -75,8 +75,8 @@ inline void logMessage(const char* fctName, const int lineNum, const char* msg)
 
 #else
 
-#define GBASSERT(TEST, MSG)
-#define GBLOG(MSG)
+#define CBASSERT(TEST, MSG)
+#define CBLOG(MSG)
 #define NOTYETIMPLEMENTED()
 
 #endif
