@@ -30,6 +30,7 @@
 
 #include <cstdint>
 #include <array>
+#include <vector>
 #include <algorithm>
 
 #include "config.h"
@@ -73,12 +74,37 @@ public:
     ///
     /// \param buffer buffer to map.
     /// \param startAddr start address where the data should be copied to.
-    ///
     template<std::size_t byteCount>
     void mapDataBufferToMemory(const std::array<uint8_t, byteCount>& buffer, uint16_t startAddr)
     {
         std::copy_n(std::cbegin(buffer), byteCount, std::begin(m_memory) + startAddr);
     }
+
+    /// \brief Map data from a buffer to the internal RAM.
+    ///
+    /// \param buffer buffer to map.
+    /// \param startAddr start address where the data should be copied to.
+    void mapDataBufferToMemory(const std::vector<uint8_t>& buffer, uint16_t startAddr)
+    {
+        std::copy_n(std::cbegin(buffer), buffer.size(), std::begin(m_memory) + startAddr);
+    }
+
+    enum MemoryAreas : uint16_t
+    {
+        eWorkRAMStart = 0xC000,
+        eWorkRAMEnd = 0xDFFF,
+
+        eEchoRAMStart = 0xE000,
+        eEchoRAMEnd = 0xFDFF,
+
+        eHardwareIORegsStart = 0xFF00,
+        eHardwareIORegsEnd = 0xFF7F
+    };
+
+    enum HardwareIORegisters : uint16_t
+    {
+        eHIO_RomSwitch = 0xFF50
+    };
 
 private:
     std::array<uint8_t,

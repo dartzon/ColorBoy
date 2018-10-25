@@ -26,45 +26,67 @@
 // Local includes.
 #include "mmu.h"
 
+#include "utils.h"
+
 uint8_t Mmu::readByte(const uint16_t address) const
 {
-    if ((address >= 0) && (address <= m_memory.size() - 1))
+    CBASSERT((address >= 0) && (address <= m_memory.size() - 1), "Out of bounds memory read");
+
+    // Handle reading from the echo RAM.
+    uint16_t offset = 0x0;
+    if ((address >= MemoryAreas::eEchoRAMStart) && (address <= MemoryAreas::eEchoRAMEnd))
     {
-        return m_memory[address];
+        offset = 0x2000;
     }
 
-    return 0;
+    return m_memory[address - offset];
 }
 
 // =================================================================================================
 
 uint16_t Mmu::readWord(const uint16_t address) const
 {
-    if ((address >= 0) && (address <= m_memory.size() - 1))
+    CBASSERT((address >= 0) && (address <= m_memory.size() - 1), "Out of bounds memory read");
+
+    // Handle reading from the echo RAM.
+    uint16_t offset = 0x0;
+    if ((address >= MemoryAreas::eEchoRAMStart) && (address <= MemoryAreas::eEchoRAMEnd))
     {
-        return m_memory[address] | (m_memory[address + 1] << 8);
+        offset = 0x2000;
     }
 
-    return 0;
+    return cbutil::combineTwoBytes(m_memory[address - offset], m_memory[address + 1 - offset]);
 }
 
 // =================================================================================================
 
 void Mmu::writeByte(const uint8_t byte, const uint16_t address)
 {
-    if ((address >= 0) && (address <= m_memory.size() - 1))
+    CBASSERT((address >= 0) && (address <= m_memory.size() - 1), "Out of bounds memory write");
+
+    // Handle writing to the echo RAM.
+    uint16_t offset = 0x0;
+    if ((address >= MemoryAreas::eEchoRAMStart) && (address <= MemoryAreas::eEchoRAMEnd))
     {
-        m_memory[address] = byte;
+        offset = 0x2000;
     }
+
+    m_memory[address - offset] = byte;
 }
 
 // =================================================================================================
 
 void Mmu::writeWord(const uint16_t word, const uint16_t address)
 {
-    if ((address >= 0) && (address <= m_memory.size() - 1))
+    CBASSERT((address >= 0) && (address <= m_memory.size() - 1), "Out of bounds memory write");
+
+    // Handle writing to the echo RAM.
+    uint16_t offset = 0x0;
+    if ((address >= MemoryAreas::eEchoRAMStart) && (address <= MemoryAreas::eEchoRAMEnd))
     {
-        m_memory[address] = word & 0xFF;
-        m_memory[address + 1] = word >> 8;
+        offset = 0x2000;
     }
+
+    m_memory[address - offset] = word & 0xFF;
+    m_memory[address + 1 - offset] = word >> 8;
 }
