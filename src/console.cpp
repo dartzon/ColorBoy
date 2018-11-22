@@ -26,40 +26,84 @@
 // Local includes.
 #include "console.h"
 
-#include "utils.h"
+#include "config.h"
 
 #include <cstdio>
 #include <memory>
 #include <algorithm>
+#include <numeric>
 
-void Console::powerOn(void)
+uint32_t GBConfig::clockFrequency;
+const Coordinate GBConfig::lcdResolution(160, 144);
+uint16_t GBConfig::vRAMSize;
+uint16_t GBConfig::wRAMSize;
+
+Console::Console(const GBType type, const std::filesystem::path& cartPath) :
+    m_cpu(m_mmu), m_gameCart(cartPath), m_poweredOn(false)
 {
-    m_poweredOn = true;
+    // Create the console's configuration.
+    namespace freq = units::frequency;
+    switch (type)
+    {
+    case GBType::eGBTYPE_dmg:
+    case GBType::eGBTYPE_sgb:
+    case GBType::eGBTYPE_mgb:
+        GBConfig::clockFrequency = cbutil::toHzValue(freq::megahertz_t(4.194304));
+        GBConfig::vRAMSize = MemoryAreasSizes::eMEMSIZE_vram;
+        GBConfig::wRAMSize = MemoryAreasSizes::eMEMSIZE_wram;
+        break;
 
-    namespace fs = std::filesystem;
+    case GBType::eGBTYPE_cgb:
+        GBConfig::clockFrequency = cbutil::toHzValue(freq::megahertz_t(8.4));
+        GBConfig::vRAMSize = MemoryAreasSizes::eMEMSIZE_vram * 2;
+        GBConfig::wRAMSize = MemoryAreasSizes::eMEMSIZE_wram * 8;
+        break;
+    }
 
-    const fs::path romPath = "/home/dartzon/Downloads/roms/cpu_instrs.gb";
-    readCartridgeROM(romPath);
-
-    // while ((m_poweredOn == true) && (m_cpu.run() == true))
-    // {
-    // }
+    m_VRAMBanks.resize(GBConfig::vRAMSize);
+    m_WRAMBanks.resize(GBConfig::wRAMSize);
 }
 
 // =================================================================================================
 
-void Console::readCartridgeROM(const std::filesystem::path& romPath)
+void Console::powerOn()
+{
+    // Map the fixed part of the memory into the Game Boy's internal memory.
+    m_mmu.mapDataBufferToMemory(m_fixedMemory, MemoryAreas::eMEMADDR_echoramstart);
+    // Map VRAM Bank 0 into the Game Boy's internal memory.
+    m_mmu.mapDataBufferToMemory(m_VRAMBanks, MemoryAreas::eMEMADDR_vrambank0start);
+    // Map WRAM Bank 0 into the Game Boy's internal memory.
+    m_mmu.mapDataBufferToMemory(m_WRAMBanks, MemoryAreas::eMEMADDR_wrambank0start);
+
+    // Writing 0 to 0xFF50 maps the CPU's internal ROM to the address 0x0000.
+    m_mmu.writeByte(0x0, HardwareIORegisters::eIOREG_romswitch);
+
+    auto cartROMBank0 = m_gameCart.getROMBank(0);
+    m_mmu.mapDataBufferToMemory(cartROMBank0.first + MemoryAreas::eMEMADDR_cartridgeheaderstart,
+                                cartROMBank0.second,
+                                MemoryAreas::eMEMADDR_cartridgeheaderstart);
+
+    m_poweredOn = true;
+
+    while ((m_poweredOn == true) && (m_cpu.cycle() == true))
+    {
+    }
+}
+
+// =================================================================================================
+
+void readCartridgeROM(const std::filesystem::path& cartPath)
 {
     namespace fs = std::filesystem;
 
-    if ((fs::exists(romPath) == true) && (fs::is_regular_file(romPath) == true))
+    if ((fs::exists(cartPath) == true) && (fs::is_regular_file(cartPath) == true))
     {
-        const std::uintmax_t romSize = fs::file_size(romPath);
+        const std::uintmax_t romSize = fs::file_size(cartPath);
         std::unique_ptr<uint8_t[]> smtROM = std::make_unique<uint8_t[]>(romSize);
 
         {
             std::unique_ptr<FILE, decltype(&fclose)> smtROMFile(
-                std::fopen(static_cast<const std::string>(romPath).c_str(), "rb"), &fclose);
+                std::fopen(static_cast<const std::string>(cartPath).c_str(), "rb"), &fclose);
             fread(smtROM.get(), romSize, 1, smtROMFile.get());
         }
 
@@ -623,11 +667,12 @@ void Console::readCartridgeROM(const std::filesystem::path& romPath)
 
         // Compute the header checksum:
         printf("Header Checksum:\n");
-        uint32_t headerChecksum = 0;
-        for (uint16_t idx = 0x0134; idx <= 0x014C; ++idx)
-        {
-            headerChecksum = headerChecksum - smtROM[idx] - 1;
-        }
+        const uint32_t headerChecksum = std::accumulate(smtROM.get() + 0x0134,
+                                                        smtROM.get() + 0x014C + 1,
+                                                        0,
+                                                        [](const uint32_t a, const uint32_t b) {
+                                                            return a - b - 1;
+                                                        });
         printf("Computed       : %X\n", headerChecksum);
         printf("Value @ 0x014D : %02X\n", smtROM[0x014D]);
         if (smtROM[0x014D] == (headerChecksum & 0xFF))

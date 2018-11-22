@@ -28,9 +28,10 @@
 #ifndef CONSOLE_H_
 #define CONSOLE_H_
 
-#include "config.h"
+#include "types.h"
 #include "mmu.h"
 #include "cpu.h"
+#include "cartridge.h"
 
 #include <filesystem>
 
@@ -40,19 +41,18 @@ class Console
 public:
     /// \brief Constructor.
     ///
-    /// \param type The Game Boy type to emulate.
-    Console(const GBType type) : config(type), m_mmu(m_memory), m_cpu(m_mmu) {}
+    /// \param type Game Boy's type to emulate.
+    /// \param cartPath path to the game ROM file.
+    Console(const GBType type, const std::filesystem::path& cartPath);
 
     /// \brief Power on the console.
-    void powerOn(void);
+    void powerOn();
 
 private:
-    void readCartridgeROM(const std::filesystem::path& romPath);
-
-    GBConfig config;  ///< Console's configuration.
-    Mmu m_mmu;        ///< Console's Memory management unit.
-    Cpu m_cpu;        ///< Console's CPU.
-    bool m_poweredOn;
+    Mmu m_mmu;             ///< Console's Memory management unit.
+    Cpu m_cpu;             ///< Console's CPU.
+    Cartridge m_gameCart;  ///< Game cartridge.
+    bool m_poweredOn;      ///< Is the console powered on?
 
     // =============================================================================================
     //   General Memory Map:
@@ -70,7 +70,9 @@ private:
     // FF80-FFFE   High RAM (HRAM)
     // FFFF        Interrupt Enable Register
     // =============================================================================================
-    std::array<uint8_t, GBConfig::sysMemSize> m_memory;  ///< Console's RAM (64KB memory system).
+    std::array<uint8_t, GBConfig::fixedMemSize> m_fixedMemory;  ///< Fixed part of the GB's memory.
+    std::vector<uint8_t> m_VRAMBanks;                           ///< VRAM banks.
+    std::vector<uint8_t> m_WRAMBanks;                           ///< WRAM banks.
 };
 
 #endif /* CONSOLE_H_ */
