@@ -30,6 +30,9 @@
 
 #include <cstdint>
 
+#include "utils.h"
+#include "types.h"
+
 // From Nintendo's website:
 // +---------------------------+---------------------------+--------------------------+
 // | Game Boy                  | Game Boy Pocket           | Game Boy Color           |
@@ -39,44 +42,33 @@
 // | RAM: 8 Kbytes             | RAM: 8 Kbytes             | RAM: 32 Kbytes           |
 // +---------------------------+---------------------------+--------------------------+
 
-/// \brief Game Boy type.
-enum class GBType : uint16_t
+/// \brief The Game Boy's type.
+enum class GBType : uint8_t
 {
-    GBT_gb = 0,  ///< Original Game Boy (GameBoy Classic).
-    GBT_gbp,     ///< Game Boy Pocket/GameBoy Light.
-    GBT_gbc      ///< Game Boy Color.
+    eGBTYPE_dmg,
+    eGBTYPE_sgb,
+    eGBTYPE_mgb,
+    eGBTYPE_cgb
 };
 
 /// \brief Emulator's configuration.
 struct GBConfig
 {
-    /// \brief Constructor.
-    ///
-    /// \param type The represented Game Boy type.
-    ///
-    GBConfig(const GBType type)
-    {
-        switch (type)
-        {
-        case GBType::GBT_gb:
-        case GBType::GBT_gbp:
-            clockFrequency = 4;
-            wRAMSize = 8000;
-            vRAMSize = 8000;
-            break;
+    static const uint32_t memorySize = cbutil::toByteValue(
+        units::data::kibibyte_t(64));  ///< Gameboy CPU has 16-bit address bus (2^16).
+    static uint32_t clockFrequency;    ///< CPU clock frequency in Hz.
 
-        case GBType::GBT_gbc:
-            clockFrequency = 8;
-            wRAMSize = 3200;
-            vRAMSize = 1600;
-            break;
-        }
-    }
+    ///< Size of the fixed parts of the Game Boy's memory.
+    static const uint16_t fixedMemSize = MemoryAreasSizes::eMEMSIZE_echo +
+                                         MemoryAreasSizes::eMEMSIZE_oam +
+                                         MemoryAreasSizes::eMEMSIZE_unused +
+                                         MemoryAreasSizes::eMEMSIZE_ioregs +
+                                         MemoryAreasSizes::eMEMSIZE_zeropage +
+                                         MemoryAreasSizes::eMEMSIZE_iereg;
 
-    static const uint32_t sysMemSize = 65536;  ///< Gameboy CPU has 16-bit address bus (2^16).
-    mutable uint8_t clockFrequency;            ///< CPU clock frequency in MHz.
-    mutable uint16_t wRAMSize;                 ///< Working ram size in Byte.
-    mutable uint16_t vRAMSize;                 ///< Video ram size in Byte.
+    static const Coordinate lcdResolution;  ///< The Game Boy LCD is 160x144 pixels.
+    static uint16_t vRAMSize;               ///< Video ram size in Byte.
+    static uint16_t wRAMSize;               ///< Working ram size in Byte.
 };
 
 #endif /* CONFIG_H_ */
