@@ -25,11 +25,23 @@
 
 // Local includes.
 #include "console.h"
-#include <vector>
 
-int main()
+int main(int argc, char* argv[])
 {
-    Console gameboy(GBType::GBT_gb);
+    std::string cartPath;
+    if (argc > 1)
+    {
+        cartPath = argv[1];
+    }
+    // #ifdef COLORBOY_DEBUG
+    else
+    {
+        cartPath = "/home/dartzon/Dev-Workspace/ColorBoy/gb-test-roms/cpu_instrs/cpu_instrs.gb";
+    }
+    // #endif
+
+    Console gameboy(GBType::eGBTYPE_dmg, cartPath);
+
     gameboy.powerOn();
 
     return 0;
