@@ -1,0 +1,6 @@
+[submodule "gb-test-roms"]
+	path = gb-test-roms
+	url = git@github.com:retrio/gb-test-roms.git
+[submodule "libs/units"]
+	path = libs/units
+	url = git@github.com:nholthaus/units.git

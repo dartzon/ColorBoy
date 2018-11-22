@@ -30,18 +30,76 @@
 
 #include "config.h"
 
+#include <array>
 #include <vector>
+#include <memory>
+#include <filesystem>
+
+using namespace units::literals;
+namespace dataunit = units::data;
 
 class Cartridge
 {
 public:
-    Cartridge(const std::vector<uint8_t>& ROM) : m_ROM(std::move(ROM)) {}
+    /// \brief Constructor.
+    ///
+    /// \param cartPath path to the game ROM file.
+    Cartridge(const std::filesystem::path& cartPath);
 
-    const std::vector<uint8_t>& getROM() const { return m_ROM; }
+    enum : uint16_t
+    {
+        eROMBankSize = cbutil::toByteValue(16_KiB)  ///< Each individual Rom Bank is 16KB long.
+    };
+
+    auto getROMBank(const uint8_t bankNum)
+    {
+        CBASSERT((bankNum * eROMBankSize) < m_ROMBanks.size(),
+                 "Invalid Cartridge's ROM bank selection");
+
+        using RomBanksIter = decltype(m_ROMBanks.begin());
+        return (std::make_pair<RomBanksIter, RomBanksIter>(m_ROMBanks.begin() +
+                                                               (bankNum * (eROMBankSize + 1)),
+                                                           m_ROMBanks.begin() +
+                                                               (bankNum * eROMBankSize) +
+                                                               eROMBankSize));
+    }
+
+    struct CartridgeInfo;
+
+    const CartridgeInfo& getCartInfo() const { return m_cartInfo; }
+
+    struct CartridgeInfo
+    {
+    private:
+        CartridgeInfo() {}
+
+    public:
+        std::string m_title;
+        bool m_GBCOnly;
+        bool m_hasBattery;
+
+        uint32_t m_romSize;
+        uint32_t m_ramSize;
+
+        uint8_t m_romBanksCount;
+        uint8_t m_ramBanksCount;
+
+        friend class Cartridge;
+    };
 
 private:
-    const std::vector<uint8_t> m_ROM;
-    std::vector<uint8_t> m_extRAM;
+    /// \brief Read the game ROM file.
+    ///
+    /// \param cartPath path to the game ROM file.
+    void parseROMFile(const std::filesystem::path& cartPath);
+
+    /// \brief Extract the ROM's info from its header.
+    void extractROMInfo();
+
+    std::vector<uint8_t> m_ROMBanks;
+    std::vector<uint8_t> m_RAMBanks;
+
+    CartridgeInfo m_cartInfo;
 };
 
 #endif /* CARTRIDGE_H_ */
