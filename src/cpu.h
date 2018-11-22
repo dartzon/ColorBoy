@@ -47,7 +47,7 @@ public:
     /// \brief Execute one instruction at a time.
     ///
     /// \return true if the CPU is still executing instructions, false otherwise.
-    bool run();
+    bool cycle();
 
 private:
     // =============================================================================================
@@ -625,17 +625,21 @@ private:
     /// \brief Representation of the CPU state.
     enum class InstructionCycleState : uint8_t
     {
-        eStop = 0,
-        eFetch,
-        eDecode,
-        eExecute
+        eCYCLE_stop = 0,
+        eCYCLE_checkint,
+        eCYCLE_fetch,
+        eCYCLE_decode,
+        eCYCLE_execute
     };
 
     /// \brief Enable the CPU's interrupts.
-    void enableInterrupts() { m_interruptsEnabled = true; }
+    void enableInterrupts() { IME = true; }
 
     /// \brief Disaable the CPU's interrupts.
-    void disableInterrupts() { m_interruptsEnabled = false; }
+    void disableInterrupts() { IME = false; }
+
+    /// \brief Check if there are activated interrupts.
+    bool checkForInterrupts();
 
     /// \brief Stop the CPU until an interrupt occurs.
     void waitForInterrupt();
@@ -680,17 +684,6 @@ private:
     /// \param data the word to store.
     /// \param addr address of the memory location where the byte will be stored.
     void loadWordToAddress(const uint16_t data, const uint16_t addr);
-
-    /// \brief Specify an instruction's size in bytes and the number of CPU cycles it takes to
-    /// execute.
-    ///
-    /// \param opLength size in bytes of the instruction to execute.
-    /// \param opCycles CPU cycles it takes to execute the instruction.
-    void setOpLengthAndCycles(const uint8_t opLength, const uint8_t opCycles)
-    {
-        m_opLength = opLength;
-        m_opCycles = opCycles;
-    }
 
     /// \brief Check if the addition of two numeric values generates a half-carry.
     ///
@@ -774,21 +767,21 @@ private:
     uint8_t IR;      ///< Instruction register.
     uint8_t MBR[2];  ///< Memory buffer register.
 
+    bool IME;  ///< Interrupt Master Enable.
+
     uint16_t m_currentInstructionAddr;  ///< The address in memory of the current instruction.
 
     Mmu& m_mmu;  ///< Memory management unit.
 
-    uint8_t m_opLength = 0;   ///< Current instruction length.
-    uint8_t m_opCycles = 0;   ///< Current instruction CPU cycles.
-    uint8_t m_cpuCycles = 0;  ///< Total CPU cycles.
+    uint8_t m_opLength = 0;    ///< Current instruction length.
+    uint32_t m_cpuCycles = 0;  ///< Total CPU cycles.
 
     InstructionCycleState m_cpuCycleState;  ///< Current CPU cycle state.
-
-    bool m_interruptsEnabled;  ///< Are interrupts enabled?
+    bool m_lastOpFinished;
 
     bool m_inPrefixCBOp;  ///< Is a prefix CB op running?
 
-    const std::array<uint8_t, 256> m_CPUROM =
+    std::array<uint8_t, 256> m_CPUROM =
         {0x31, 0xFE, 0xFF, 0xAF, 0x21, 0xFF, 0x9F, 0x32, 0xCB, 0x7C, 0x20, 0xFB, 0x21, 0x26, 0xFF,
          0x0E, 0x11, 0x3E, 0x80, 0x32, 0xE2, 0x0C, 0x3E, 0xF3, 0xE2, 0x32, 0x3E, 0x77, 0x77, 0x3E,
          0xFC, 0xE0, 0x47, 0x11, 0x04, 0x01, 0x21, 0x10, 0x80, 0x1A, 0xCD, 0x95, 0x00, 0xCD, 0x96,

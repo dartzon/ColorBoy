@@ -28,6 +28,9 @@
 
 // std includes.
 #include <type_traits>
+#include <chrono>
+#include <ctime>
+#include <thread>
 
 // Local includes.
 #include "utils.h"
@@ -37,22 +40,89 @@ Cpu::Cpu(Mmu& mmu) :
     F(m_registers[0]), H(m_registers[7]), L(m_registers[6]), AF(reinterpret_cast<uint16_t&>(F)),
     BC(reinterpret_cast<uint16_t&>(C)), DE(reinterpret_cast<uint16_t&>(E)),
     HL(reinterpret_cast<uint16_t&>(L)), SP(reinterpret_cast<uint16_t&>(m_registers[8])),
-    PC(reinterpret_cast<uint16_t&>(m_registers[10])), m_mmu(mmu),
-    m_cpuCycleState(InstructionCycleState::eFetch), m_interruptsEnabled(true), m_inPrefixCBOp(false)
+    PC(reinterpret_cast<uint16_t&>(m_registers[10])), IME(true), m_mmu(mmu),
+    m_cpuCycleState(InstructionCycleState::eCYCLE_fetch), m_lastOpFinished(true),
+    m_inPrefixCBOp(false)
 {
-    PC = 0x0;
+    // Initialize the PC register to the start of the Game Boy's memory.
+    PC = MemoryAreas::eMEMADDR_rombank0start;
 
-    // Copy the CPU's ROM to the internal memory at address 0x0.
-    m_mmu.mapDataBufferToMemory(m_CPUROM, 0x0);
+    // Map the CPU's ROM to the internal memory at address 0x0.
+    m_mmu.mapDataBufferToMemory(m_CPUROM, MemoryAreas::eMEMADDR_rombank0start);
+}
 
-    // Use the internal ROM.
-    m_mmu.writeByte(0x0, Mmu::eHIO_RomSwitch);
+// =================================================================================================
+
+bool Cpu::checkForInterrupts()
+{
+    const std::bitset<8> interruptFlagsReg(m_mmu.readByte(HardwareIORegisters::eIOREG_if) & 0x1F);
+    const std::bitset<8> interruptEnableReg(m_mmu.readByte(MemoryAreas::eMEMADDR_eireg) & 0x1F);
+
+    const uint16_t oldPC = PC;
+
+    if (IME == true)
+    {
+        if ((interruptFlagsReg == true) && (interruptEnableReg == true))
+        {
+            if ((interruptFlagsReg.to_ulong() == 0x01) && (interruptEnableReg.to_ulong() == 0x01))
+            {
+                // LCD V-Blank interrupt.
+
+                execPUSH(PC);
+
+                PC = InterruptAddresses::eINTADDR_vblank;
+            }
+
+            if ((interruptFlagsReg.to_ulong() == 0x02) && (interruptEnableReg.to_ulong() == 0x02))
+            {
+                // LCD stat interrupt.
+
+                execPUSH(PC);
+
+                PC = InterruptAddresses::eINTADDR_lcdstat;
+            }
+
+            if ((interruptFlagsReg.to_ulong() == 0x04) && (interruptEnableReg.to_ulong() == 0x04))
+            {
+                // Timer interrupt.
+
+                execPUSH(PC);
+
+                PC = InterruptAddresses::eINTADDR_timer;
+            }
+
+            if ((interruptFlagsReg.to_ulong() == 0x08) && (interruptEnableReg.to_ulong() == 0x08))
+            {
+                // Serial interrupt.
+
+                execPUSH(PC);
+
+                PC = InterruptAddresses::eINTADDR_serial;
+            }
+
+            if ((interruptFlagsReg.to_ulong() == 0x10) && (interruptEnableReg.to_ulong() == 0x10))
+            {
+                // Joypad interrupt.
+
+                execPUSH(PC);
+
+                PC = InterruptAddresses::eINTADDR_joypad;
+            }
+        }
+    }
+
+    switchState();
+
+    return oldPC != PC;
 }
 
 // =================================================================================================
 
 void Cpu::waitForInterrupt()
 {
+    while (checkForInterrupts() == false)
+    {
+    }
 }
 
 // =================================================================================================
@@ -80,7 +150,7 @@ void Cpu::fetch()
     // Advance PC to point to the next instruction in memory.
     PC += opLength;
 
-    switchState(InstructionCycleState::eDecode);
+    switchState();
 }
 
 // =================================================================================================
@@ -89,6 +159,14 @@ void Cpu::decode()
 {
     // Get the length of the current instruction.
     const uint8_t opLength = m_opsLengths[IR];
+
+    if (m_opLength > 1)
+    {
+    }
+    else
+    {
+        m_lastOpFinished = true;
+    }
 
     // Fetch the instruction's data (if any) from memory to MBR.
     for (uint8_t pos = 0; pos < opLength - 1; ++pos)
@@ -140,7 +218,7 @@ void Cpu::decode()
     case 0xF2:
     case 0xFA:
         // Fetch data from the memory address stored in MBR.
-        MBR[0] = fetchByteFromAddress(cbutil::combineTwoBytes(MBR[1], MBR[0]));
+        MBR[0] = fetchByteFromAddress(cbutil::combineTwoBytes(MBR[0], MBR[1]));
         break;
     }
 
@@ -172,10 +250,19 @@ void Cpu::switchState()
 {
     switch (m_cpuCycleState)
     {
-    case InstructionCycleState::eFetch: m_cpuCycleState = InstructionCycleState::eDecode; break;
-    case InstructionCycleState::eDecode: m_cpuCycleState = InstructionCycleState::eExecute; break;
-    case InstructionCycleState::eExecute:
-    case InstructionCycleState::eStop: m_cpuCycleState = InstructionCycleState::eFetch; break;
+    case InstructionCycleState::eCYCLE_checkint:
+        m_cpuCycleState = InstructionCycleState::eCYCLE_fetch;
+        break;
+    case InstructionCycleState::eCYCLE_fetch:
+        m_cpuCycleState = InstructionCycleState::eCYCLE_decode;
+        break;
+    case InstructionCycleState::eCYCLE_decode:
+        m_cpuCycleState = InstructionCycleState::eCYCLE_execute;
+        break;
+    case InstructionCycleState::eCYCLE_execute:
+    case InstructionCycleState::eCYCLE_stop:
+        m_cpuCycleState = InstructionCycleState::eCYCLE_checkint;
+        break;
     }
 }
 
@@ -188,15 +275,52 @@ void Cpu::switchState(const InstructionCycleState state)
 
 // =================================================================================================
 
-bool Cpu::run()
+bool Cpu::cycle()
 {
+    // std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
+
+    // start = std::chrono::high_resolution_clock::now();
+
     switch (m_cpuCycleState)
     {
-    case InstructionCycleState::eStop: waitForInterrupt(); break;
-    case InstructionCycleState::eFetch: fetch(); break;
-    case InstructionCycleState::eDecode: decode(); break;
-    case InstructionCycleState::eExecute: execute(); break;
+    case InstructionCycleState::eCYCLE_checkint: checkForInterrupts(); break;
+    case InstructionCycleState::eCYCLE_fetch: fetch(); break;
+    case InstructionCycleState::eCYCLE_decode: decode(); break;
+    case InstructionCycleState::eCYCLE_execute: execute(); break;
+    case InstructionCycleState::eCYCLE_stop: waitForInterrupt(); break;
     }
+
+    // end = std::chrono::high_resolution_clock::now();
+
+    // std::chrono::duration<double, std::nano> timeSpentInTick = end - start;
+
+    // using namespace std::chrono_literals;
+    // const std::chrono::duration<double> oneCPUTick(954ns);
+
+    // if (m_cpuCycles == 4)
+    // {
+    //     const std::chrono::duration<double, std::nano> total = oneCPUTick - timeSpentInTick;
+
+    //     printf(">>>>>>>> Elapsed time: %f\tCompensation: %f\t",
+    //            timeSpentInTick.count(),
+    //            total.count());
+
+    //     start = std::chrono::high_resolution_clock::now();
+    //     std::this_thread::sleep_for(1s);
+
+    //     // ==============================
+
+    //     end = std::chrono::high_resolution_clock::now();
+    //     std::chrono::duration<double, std::nano> timeSpentInTick2 = end - start;
+
+    //     printf("One frame takes : %f\n", timeSpentInTick2.count());
+
+    //     // ==============================
+
+    //     m_cpuCycles = 0;
+    // }
+
+    // m_cpuCycles += 4;
 
     return true;
 }
@@ -205,10 +329,7 @@ bool Cpu::run()
 
 uint8_t Cpu::fetchNextByte()
 {
-    const uint8_t byte = m_mmu.readByte(PC);
-    m_cpuCycles += 4;
-
-    return byte;
+    return fetchByteFromAddress(PC);
 }
 
 // =================================================================================================
@@ -226,6 +347,7 @@ uint8_t Cpu::fetchByteFromAddress(const uint16_t addr)
 void Cpu::loadByteToAddress(const uint8_t data, const uint16_t addr)
 {
     m_mmu.writeByte(data, addr);
+    m_cpuCycles += 4;
 }
 
 // =================================================================================================
@@ -233,4 +355,5 @@ void Cpu::loadByteToAddress(const uint8_t data, const uint16_t addr)
 void Cpu::loadWordToAddress(const uint16_t data, const uint16_t addr)
 {
     m_mmu.writeWord(data, addr);
+    m_cpuCycles += 8;
 }
