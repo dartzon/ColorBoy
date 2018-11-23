@@ -4,3 +4,6 @@
 [submodule "libs/units"]
 	path = libs/units
 	url = git@github.com:nholthaus/units.git
+[submodule "libs/nana"]
+	path = libs/nana
+	url = git@github.com:cnjinhao/nana.git

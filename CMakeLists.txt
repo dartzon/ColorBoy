@@ -44,11 +44,20 @@ endif()
 ###############################################################################
 ## Target definitions.
 ###############################################################################
-file(GLOB_RECURSE PROJECT_SRC_LST ${PROJECT_SOURCE_DIR}/src/*.h ${PROJECT_SOURCE_DIR}/src/*.cpp)
+file(GLOB_RECURSE PROJECT_SRC_LST ${PROJECT_SOURCE_DIR}/src/*.cpp)
 add_executable(colorboy ${PROJECT_SRC_LST})
 target_compile_options(colorboy PUBLIC $<$<CONFIG:DEBUG>:-DCOLORBOY_DEBUG>)
+
+set(BUILD_TESTS OFF)
+set(DISABLE_IOSTREAM ON)
+set(DISABLE_PREDEFINED_UNITS ON)
+set(ENABLE_PREDEFINED_FREQUENCY_UNITS ON)
+set(ENABLE_PREDEFINED_DATA_UNITS ON)
+add_subdirectory(${PROJECT_SOURCE_DIR}/libs/units/)
+
 target_include_directories(colorboy PUBLIC ${PROJECT_SOURCE_DIR}/src/)
-target_link_libraries(colorboy stdc++fs)
+
+target_link_libraries(colorboy stdc++fs units)
 
 ###############################################################################
 ## Unit test target.
