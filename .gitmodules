@@ -4,3 +4,7 @@
 [submodule "libs/nana"]
 	path = libs/nana
 	url = git@github.com:cnjinhao/nana.git
+[submodule "libs/units"]
+	path = libs/units
+	url = git@github.com:nholthaus/units.git
+	branch = tags/v2.3.1
