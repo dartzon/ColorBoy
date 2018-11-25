@@ -30,6 +30,7 @@
 
 // std includes.
 #include <cstdint>
+#include <string>
 
 #include "units.h"
 
