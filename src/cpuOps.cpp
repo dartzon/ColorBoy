@@ -29,16 +29,40 @@
 
 void Cpu::execPUSH(const uint16_t word)
 {
-    SP -= 2;
-    loadWordToAddress(word, SP);
+    // 1st cycle.
+    if (m_unfinishedLastOp == false)
+    {
+        SP -= 2;
+
+        loadByteToAddress(word & 0xFF, SP);
+        m_unfinishedLastOp = true;
+
+        return;
+    }
+
+    // 2nd cycle.
+    loadByteToAddress(word >> 8, SP + 1);
+    m_unfinishedLastOp = false;
 }
 
 // =================================================================================================
 
 uint16_t Cpu::execPOP()
 {
-    const uint8_t lByte = fetchByteFromAddress(SP);
+    // 1st cycle.
+    if (m_unfinishedLastOp == false)
+    {
+        m_unfinishedLastOpData.push(fetchByteFromAddress(SP));
+        m_unfinishedLastOp = true;
+
+        return 0;
+    }
+
+    // 2nd cycle.
+    const uint8_t lByte = m_unfinishedLastOpData.top();
     const uint8_t hByte = fetchByteFromAddress(SP + 1);
+    m_unfinishedLastOpData.pop();
+    m_unfinishedLastOp = false;
 
     SP += 2;
 
@@ -142,10 +166,20 @@ void Cpu::op_RLCA()
 
 void Cpu::op_LD__a16__SP()
 {
-    const uint16_t addr = cbutil::combineTwoBytes(MBR[0], MBR[1]);
-    loadWordToAddress(SP, addr);
+    // 1st cycle.
+    if (m_unfinishedLastOp == false)
+    {
+        loadByteToAddress(SP, MBR[0]);
+        m_unfinishedLastOp = true;
 
-    PRINTOP("LD ($%x), SP", {addr});
+        return;
+    }
+
+    // 2nd cycle.
+    loadByteToAddress(SP + 1, MBR[1]);
+    m_unfinishedLastOp = false;
+
+    PRINTOP("LD ($%x), SP", {cbutil::combineTwoBytes(MBR[0], MBR[1])});
 }
 
 // =================================================================================================
@@ -691,13 +725,26 @@ void Cpu::op_INC_SP()
 
 void Cpu::op_INC__HL__()
 {
-    // TODO: Check if the fetched byte should be stored in a specific register before the
-    // incrementation.
-    uint8_t byte = fetchByteFromAddress(HL);
+    // 1st cycle.
+    if (m_unfinishedLastOp == false)
+    {
+        uint8_t byte = fetchByteFromAddress(HL);
 
-    const bool halfCarry = hasHalfCarry(byte);
-    ++byte;
+        m_unfinishedLastOpData.push(static_cast<uint8_t>(hasHalfCarry(byte)));
+        m_unfinishedLastOpData.push(++byte);
+
+        m_unfinishedLastOp = true;
+
+        return;
+    }
+
+    // 2nd cycle.
+    const uint8_t byte = m_unfinishedLastOpData.top();
     loadByteToAddress(byte, HL);
+    m_unfinishedLastOpData.pop();
+    const bool halfCarry = static_cast<const bool>(m_unfinishedLastOpData.top());
+    m_unfinishedLastOpData.pop();
+    m_unfinishedLastOp = false;
 
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (byte == 0));
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, false);
@@ -710,13 +757,26 @@ void Cpu::op_INC__HL__()
 
 void Cpu::op_DEC__HL__()
 {
-    // TODO: Check if the fetched byte should be stored in a specific register before the
-    // incrementation.
-    uint8_t byte = fetchByteFromAddress(HL);
+    // 1st cycle.
+    if (m_unfinishedLastOp == false)
+    {
+        uint8_t byte = fetchByteFromAddress(HL);
 
-    const bool noHalfBorrow = !(hasHalfBorrow(byte));
-    --byte;
+        m_unfinishedLastOpData.push(static_cast<uint8_t>(!(hasHalfBorrow(byte))));
+        m_unfinishedLastOpData.push(--byte);
+
+        m_unfinishedLastOp = true;
+
+        return;
+    }
+
+    // 2nd cycle.
+    const uint8_t byte = m_unfinishedLastOpData.top();
     loadByteToAddress(byte, HL);
+    m_unfinishedLastOpData.pop();
+    const bool noHalfBorrow = static_cast<const bool>(m_unfinishedLastOpData.top());
+    m_unfinishedLastOpData.pop();
+    m_unfinishedLastOp = false;
 
     setFlagRegisterBit(FlagRegisterBits::eZeroFlag, (byte == 0));
     setFlagRegisterBit(FlagRegisterBits::eSubtractFlag, true);

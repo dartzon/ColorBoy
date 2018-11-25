@@ -32,6 +32,7 @@
 
 #include <cstdint>
 #include <array>
+#include <stack>
 #include <bitset>
 #include <functional>
 
@@ -679,12 +680,6 @@ private:
     /// \param addr address of the memory location where the byte will be stored.
     void loadByteToAddress(const uint8_t data, const uint16_t addr);
 
-    /// \brief Store a word in a specific memory address.
-    ///
-    /// \param data the word to store.
-    /// \param addr address of the memory location where the byte will be stored.
-    void loadWordToAddress(const uint16_t data, const uint16_t addr);
-
     /// \brief Check if the addition of two numeric values generates a half-carry.
     ///
     /// \param data byte or word to check.
@@ -776,8 +771,9 @@ private:
     uint8_t m_opLength = 0;    ///< Current instruction length.
     uint32_t m_cpuCycles = 0;  ///< Total CPU cycles.
 
-    InstructionCycleState m_cpuCycleState;  ///< Current CPU cycle state.
-    bool m_lastOpFinished;
+    InstructionCycleState m_cpuCycleState;       ///< Current CPU cycle state.
+    std::stack<uint8_t> m_unfinishedLastOpData;  ///< Any data left from an unfinished op.
+    bool m_unfinishedLastOp;                     ///< Is the last CPU op completed?
 
     bool m_inPrefixCBOp;  ///< Is a prefix CB op running?
 

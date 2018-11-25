@@ -41,7 +41,7 @@ Cpu::Cpu(Mmu& mmu) :
     BC(reinterpret_cast<uint16_t&>(C)), DE(reinterpret_cast<uint16_t&>(E)),
     HL(reinterpret_cast<uint16_t&>(L)), SP(reinterpret_cast<uint16_t&>(m_registers[8])),
     PC(reinterpret_cast<uint16_t&>(m_registers[10])), IME(true), m_mmu(mmu),
-    m_cpuCycleState(InstructionCycleState::eCYCLE_fetch), m_lastOpFinished(true),
+    m_cpuCycleState(InstructionCycleState::eCYCLE_fetch), m_unfinishedLastOp(false),
     m_inPrefixCBOp(false)
 {
     // Initialize the PC register to the start of the Game Boy's memory.
@@ -133,22 +133,21 @@ void Cpu::fetch()
     IR = fetchNextByte();
 
     // Get the length of the fetched instruction.
-    uint8_t opLength = 0;
     if (m_inPrefixCBOp == false)
     {
-        opLength = m_opsLengths[IR];
+        m_opLength = m_opsLengths[IR];
     }
     else
     {
         // Prefix CB instructions are all 1 byte long.
-        opLength = 1;
+        m_opLength = 1;
     }
 
     // Save the current address pointer by PC.
     m_currentInstructionAddr = PC;
 
     // Advance PC to point to the next instruction in memory.
-    PC += opLength;
+    PC += m_opLength;
 
     switchState();
 }
@@ -157,69 +156,28 @@ void Cpu::fetch()
 
 void Cpu::decode()
 {
-    // Get the length of the current instruction.
-    const uint8_t opLength = m_opsLengths[IR];
-
-    if (m_opLength > 1)
+    if (m_unfinishedLastOp == false)
     {
+        if (m_opLength > 1)
+        {
+            MBR[0] = fetchByteFromAddress(m_currentInstructionAddr + 1);
+            m_unfinishedLastOp = true;
+
+            return;
+        }
+        else
+        {
+            // Fetch the instruction's data (if any) from memory to MBR.
+            for (uint8_t pos = 0; pos < m_opLength - 1; ++pos)
+            {
+                MBR[0] = fetchByteFromAddress(m_currentInstructionAddr + pos + 1);
+            }
+        }
     }
     else
     {
-        m_lastOpFinished = true;
-    }
-
-    // Fetch the instruction's data (if any) from memory to MBR.
-    for (uint8_t pos = 0; pos < opLength - 1; ++pos)
-    {
-        MBR[pos] = fetchByteFromAddress(m_currentInstructionAddr + pos + 1);
-    }
-
-    // Check if indirect memory operation on right hand operand.
-    // 0A
-    // 1A
-    // 2A
-    // 34 35 3A
-    // 46 4E
-    // 56 5E
-    // 66 6E
-    // 7E
-    // 86 8E
-    // 96 9E
-    // A6 AE
-    // B6 BE
-    // E9
-    // F0 F2 FA
-
-    switch (IR)
-    {
-    case 0x0A:
-    case 0x1A:
-    case 0x2A:
-    case 0x34:
-    case 0x35:
-    case 0x3A:
-    case 0x46:
-    case 0x4E:
-    case 0x56:
-    case 0x5E:
-    case 0x66:
-    case 0x6E:
-    case 0x7E:
-    case 0x86:
-    case 0x8E:
-    case 0x96:
-    case 0x9E:
-    case 0xA6:
-    case 0xAE:
-    case 0xB6:
-    case 0xBE:
-    case 0xE9:
-    case 0xF0:
-    case 0xF2:
-    case 0xFA:
-        // Fetch data from the memory address stored in MBR.
-        MBR[0] = fetchByteFromAddress(cbutil::combineTwoBytes(MBR[0], MBR[1]));
-        break;
+        MBR[1] = fetchByteFromAddress(m_currentInstructionAddr + 2);
+        m_unfinishedLastOp = false;
     }
 
     switchState();
@@ -277,10 +235,7 @@ void Cpu::switchState(const InstructionCycleState state)
 
 bool Cpu::cycle()
 {
-    // std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
-
-    // start = std::chrono::high_resolution_clock::now();
-
+    const InstructionCycleState lastCpuCycleState = m_cpuCycleState;
     switch (m_cpuCycleState)
     {
     case InstructionCycleState::eCYCLE_checkint: checkForInterrupts(); break;
@@ -290,37 +245,13 @@ bool Cpu::cycle()
     case InstructionCycleState::eCYCLE_stop: waitForInterrupt(); break;
     }
 
-    // end = std::chrono::high_resolution_clock::now();
+    // There must be an operation which took more that one CPU cycle.
+    if (m_unfinishedLastOp == true)
+    {
+        m_cpuCycleState = lastCpuCycleState;
+    }
 
-    // std::chrono::duration<double, std::nano> timeSpentInTick = end - start;
-
-    // using namespace std::chrono_literals;
-    // const std::chrono::duration<double> oneCPUTick(954ns);
-
-    // if (m_cpuCycles == 4)
-    // {
-    //     const std::chrono::duration<double, std::nano> total = oneCPUTick - timeSpentInTick;
-
-    //     printf(">>>>>>>> Elapsed time: %f\tCompensation: %f\t",
-    //            timeSpentInTick.count(),
-    //            total.count());
-
-    //     start = std::chrono::high_resolution_clock::now();
-    //     std::this_thread::sleep_for(1s);
-
-    //     // ==============================
-
-    //     end = std::chrono::high_resolution_clock::now();
-    //     std::chrono::duration<double, std::nano> timeSpentInTick2 = end - start;
-
-    //     printf("One frame takes : %f\n", timeSpentInTick2.count());
-
-    //     // ==============================
-
-    //     m_cpuCycles = 0;
-    // }
-
-    // m_cpuCycles += 4;
+    m_cpuCycles += 4;
 
     return true;
 }
@@ -337,7 +268,6 @@ uint8_t Cpu::fetchNextByte()
 uint8_t Cpu::fetchByteFromAddress(const uint16_t addr)
 {
     const uint8_t byte = m_mmu.readByte(addr);
-    m_cpuCycles += 4;
 
     return byte;
 }
@@ -347,13 +277,4 @@ uint8_t Cpu::fetchByteFromAddress(const uint16_t addr)
 void Cpu::loadByteToAddress(const uint8_t data, const uint16_t addr)
 {
     m_mmu.writeByte(data, addr);
-    m_cpuCycles += 4;
-}
-
-// =================================================================================================
-
-void Cpu::loadWordToAddress(const uint16_t data, const uint16_t addr)
-{
-    m_mmu.writeWord(data, addr);
-    m_cpuCycles += 8;
 }
