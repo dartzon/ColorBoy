@@ -62,8 +62,6 @@ target_link_libraries(colorboy stdc++fs units)
 ###############################################################################
 ## Unit test target.
 ###############################################################################
-option(BUILD_TESTS "Build unit tests" OFF)
-
 if(BUILD_TESTS)
   enable_testing()
   include_directories(${PROJECT_SOURCE_DIR}/src)
