@@ -94,11 +94,11 @@ enum InterruptAddresses : uint16_t
 /// \brief LCD's periods timing in number of clock cycles.
 enum LCDTiming : uint16_t
 {
-    eLCDTIME_scanline_oam = 80,
-    eLCDTIME_scanline_vram = 172,
+    eLCDTIME_scanlineoam = 80,
+    eLCDTIME_pixeltransfer = 172,
     eLCDTIME_hblank = 204,
-    eLCDTIME_oneline = eLCDTIME_scanline_oam + eLCDTIME_scanline_vram + eLCDTIME_hblank,
-    eLCDTIME_vblank
+    eLCDTIME_onelinerender = eLCDTIME_scanlineoam + eLCDTIME_pixeltransfer + eLCDTIME_hblank,
+    eLCDTIME_vblank = eLCDTIME_onelinerender * 10
 };
 
 /// \brief Used to represent pixels coordinates on the screen.
