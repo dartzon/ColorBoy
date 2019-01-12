@@ -45,10 +45,15 @@ public:
     /// \param mmu Memory management unit.
     explicit Cpu(Mmu& mmu);
 
-    /// \brief Execute one instruction at a time.
+    /// \brief Run the CPU for one cycle.
     ///
     /// \return true if the CPU is still executing instructions, false otherwise.
     bool cycle();
+
+    /// \brief Get the current CPU cycle.
+    ///
+    /// \return the current CPU cycle.
+    uint32_t getCurrentCPUCycle() const { return m_cpuCycles; }
 
 private:
     // =============================================================================================

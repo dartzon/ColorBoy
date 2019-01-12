@@ -32,14 +32,48 @@
 
 #include "lcd.h"
 
+// PPU timing:
+// ---------------
+// OAM search: 80 cycles.
+// Pixel transfer: 172 cycles.
+// H-Blank: 204 cycles.
+
 class Ppu
 {
-    // public:
-    //     void run(const uint32_t currentCPUCycle);
+public:
+    explicit Ppu(Mmu& mmu) :
+        m_mmu(mmu), m_lastCPUCycle(0), m_currentScanLine(0),
+        m_screenMode(ScreenMode::eSCREENMODE_oamsearch)
+    {
+        printf("OAM mode\n");
+    }
 
-    // private:
-    //     void scanOAM(const uint8_t scanLine);
-    //     void transferPixels(const Lcd& lcd);
+    /// \brief Run the PPU for one cycle.
+    ///
+    /// \param currentCPUCycle the current CPU cycle.
+    void cycle(const uint32_t currentCPUCycle);
+
+private:
+    /// \brief Switch the PPU to its next state.
+    void switchState();
+
+    void scanOAM(const uint32_t currentCPUCycle);
+    void transferPixels(const uint32_t currentCPUCycle);
+    void enterHBlankPeriod(const uint32_t currentCPUCycle);
+    void enterVBlankPeriod(const uint32_t currentCPUCycle);
+
+    enum class ScreenMode : uint8_t
+    {
+        eSCREENMODE_hblank = 0,
+        eSCREENMODE_vblank = 1,
+        eSCREENMODE_oamsearch = 2,
+        eSCREENMODE_lcdtransfer = 3
+    };
+
+    Mmu& m_mmu;                 ///< Memory management unit.
+    uint32_t m_lastCPUCycle;    ///< Last CPU cycle where the PPU processed data.
+    uint8_t m_currentScanLine;  ///< Current horizontal line from 0 to 153.
+    ScreenMode m_screenMode;    ///< Current operating mode of the screen.
 };
 
 #endif /* PPU_H_ */

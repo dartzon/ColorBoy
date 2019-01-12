@@ -26,6 +26,111 @@
 // Local includes.
 #include "ppu.h"
 
-// void Ppu::run(const uint32_t currentCPUCycle)
-// {
-// }
+#include <thread>
+
+void Ppu::cycle(const uint32_t currentCPUCycle)
+{
+    printf(">>> Line %u\tCPU Cycle %u\tPPU Cycle %u\n",
+           m_currentScanLine,
+           (currentCPUCycle - m_lastCPUCycle) / 4,
+           m_lastCPUCycle);
+
+    switch (m_screenMode)
+    {
+    case ScreenMode::eSCREENMODE_oamsearch: scanOAM(currentCPUCycle); break;
+    case ScreenMode::eSCREENMODE_lcdtransfer: transferPixels(currentCPUCycle); break;
+    case ScreenMode::eSCREENMODE_hblank: enterHBlankPeriod(currentCPUCycle); break;
+    case ScreenMode::eSCREENMODE_vblank: enterVBlankPeriod(currentCPUCycle); break;
+    }
+
+    // if (m_screenMode == ScreenMode::eSCREENMODE_vblank)
+    {
+        // using namespace std::chrono_literals;
+        // std::this_thread::sleep_for(2ns);
+    }
+}
+
+// =================================================================================================
+
+void Ppu::switchState()
+{
+    switch (m_screenMode)
+    {
+    case ScreenMode::eSCREENMODE_oamsearch:
+        printf("Pixel transfer\n");
+        m_screenMode = ScreenMode::eSCREENMODE_lcdtransfer;
+        break;
+    case ScreenMode::eSCREENMODE_lcdtransfer:
+        printf("H-Blank period\n");
+        m_screenMode = ScreenMode::eSCREENMODE_hblank;
+        break;
+    case ScreenMode::eSCREENMODE_hblank:
+        if (m_currentScanLine != 144)
+        {
+            printf("OAM mode\n");
+            m_screenMode = ScreenMode::eSCREENMODE_oamsearch;
+        }
+        else
+        {
+            printf("V-Blank period\n");
+            m_screenMode = ScreenMode::eSCREENMODE_vblank;
+        }
+        break;
+    case ScreenMode::eSCREENMODE_vblank:
+        printf("OAM mode\n");
+        m_screenMode = ScreenMode::eSCREENMODE_oamsearch;
+        break;
+    }
+}
+
+// =================================================================================================
+
+void Ppu::scanOAM(const uint32_t currentCPUCycle)
+{
+    m_mmu.writeByte(m_currentScanLine, HardwareIORegisters::eIOREG_ly);
+
+    if (((currentCPUCycle - m_lastCPUCycle) / 4) == LCDTiming::eLCDTIME_scanlineoam)
+    {
+        m_lastCPUCycle = currentCPUCycle;
+        switchState();
+    }
+}
+
+// =================================================================================================
+
+void Ppu::transferPixels(const uint32_t currentCPUCycle)
+{
+    if (((currentCPUCycle - m_lastCPUCycle) / 4) == LCDTiming::eLCDTIME_pixeltransfer)
+    {
+        m_lastCPUCycle = currentCPUCycle;
+        switchState();
+    }
+}
+
+// =================================================================================================
+
+void Ppu::enterHBlankPeriod(const uint32_t currentCPUCycle)
+{
+    if (((currentCPUCycle - m_lastCPUCycle) / 4) == LCDTiming::eLCDTIME_hblank)
+    {
+        m_lastCPUCycle = currentCPUCycle;
+        ++m_currentScanLine;
+        switchState();
+    }
+}
+
+// =================================================================================================
+
+void Ppu::enterVBlankPeriod(const uint32_t currentCPUCycle)
+{
+    if (((currentCPUCycle - m_lastCPUCycle) / 4) == LCDTiming::eLCDTIME_vblank)
+    {
+        m_lastCPUCycle = currentCPUCycle;
+        m_currentScanLine = 0;
+        switchState();
+    }
+    else if ((((currentCPUCycle - m_lastCPUCycle) / 4) % eLCDTIME_onelinerender) == 0)
+    {
+        ++m_currentScanLine;
+    }
+}

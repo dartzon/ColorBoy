@@ -31,6 +31,7 @@
 #include "types.h"
 #include "mmu.h"
 #include "cpu.h"
+#include "ppu.h"
 #include "cartridge.h"
 
 #include <filesystem>
@@ -51,6 +52,7 @@ public:
 private:
     Mmu m_mmu;             ///< Console's Memory management unit.
     Cpu m_cpu;             ///< Console's CPU.
+    Ppu m_ppu;             ///< Console's PPU.
     Cartridge m_gameCart;  ///< Game cartridge.
     bool m_poweredOn;      ///< Is the console powered on?
 

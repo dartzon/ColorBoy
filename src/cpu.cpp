@@ -251,6 +251,11 @@ bool Cpu::cycle()
         m_cpuCycleState = lastCpuCycleState;
     }
 
+    if (m_cpuCycles == GBConfig::clockFrequency)
+    {
+        m_cpuCycles = 0;
+        exit(404);
+    }
     m_cpuCycles += 4;
 
     return true;

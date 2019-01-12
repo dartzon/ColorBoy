@@ -39,7 +39,7 @@ uint16_t GBConfig::vRAMSize;
 uint16_t GBConfig::wRAMSize;
 
 Console::Console(const GBType type, const std::filesystem::path& cartPath) :
-    m_cpu(m_mmu), m_gameCart(cartPath), m_poweredOn(false)
+    m_cpu(m_mmu), m_ppu(m_mmu), m_gameCart(cartPath), m_poweredOn(false)
 {
     // Create the console's configuration.
     namespace freq = units::frequency;
@@ -87,6 +87,7 @@ void Console::powerOn()
 
     while ((m_poweredOn == true) && (m_cpu.cycle() == true))
     {
+        m_ppu.cycle(m_cpu.getCurrentCPUCycle());
     }
 }
 
