@@ -30,23 +30,28 @@
 
 void Ppu::cycle(const uint32_t currentCPUCycle)
 {
-    printf(">>> Line %u\tCPU Cycle %u\tPPU Cycle %u\n",
+    printf(">>> Line %u\tCPU Cycle %u\t",
            m_currentScanLine,
-           (currentCPUCycle - m_lastCPUCycle) / 4,
-           m_lastCPUCycle);
+           (currentCPUCycle - m_lastCPUCycle) / 4);
 
     switch (m_screenMode)
     {
-    case ScreenMode::eSCREENMODE_oamsearch: scanOAM(currentCPUCycle); break;
-    case ScreenMode::eSCREENMODE_lcdtransfer: transferPixels(currentCPUCycle); break;
-    case ScreenMode::eSCREENMODE_hblank: enterHBlankPeriod(currentCPUCycle); break;
-    case ScreenMode::eSCREENMODE_vblank: enterVBlankPeriod(currentCPUCycle); break;
-    }
-
-    // if (m_screenMode == ScreenMode::eSCREENMODE_vblank)
-    {
-        // using namespace std::chrono_literals;
-        // std::this_thread::sleep_for(2ns);
+    case ScreenMode::eSCREENMODE_oamsearch:
+        printf("Scanline OAM\n");
+        scanOAM(currentCPUCycle);
+        break;
+    case ScreenMode::eSCREENMODE_lcdtransfer:
+        printf("Scanline LCD transfer\n");
+        transferPixels(currentCPUCycle);
+        break;
+    case ScreenMode::eSCREENMODE_hblank:
+        printf("H-Blank\n");
+        enterHBlankPeriod(currentCPUCycle);
+        break;
+    case ScreenMode::eSCREENMODE_vblank:
+        printf("V-Blank\n");
+        enterVBlankPeriod(currentCPUCycle);
+        break;
     }
 }
 
@@ -57,29 +62,21 @@ void Ppu::switchState()
     switch (m_screenMode)
     {
     case ScreenMode::eSCREENMODE_oamsearch:
-        printf("Pixel transfer\n");
+
         m_screenMode = ScreenMode::eSCREENMODE_lcdtransfer;
         break;
-    case ScreenMode::eSCREENMODE_lcdtransfer:
-        printf("H-Blank period\n");
-        m_screenMode = ScreenMode::eSCREENMODE_hblank;
-        break;
+    case ScreenMode::eSCREENMODE_lcdtransfer: m_screenMode = ScreenMode::eSCREENMODE_hblank; break;
     case ScreenMode::eSCREENMODE_hblank:
         if (m_currentScanLine != 144)
         {
-            printf("OAM mode\n");
             m_screenMode = ScreenMode::eSCREENMODE_oamsearch;
         }
         else
         {
-            printf("V-Blank period\n");
             m_screenMode = ScreenMode::eSCREENMODE_vblank;
         }
         break;
-    case ScreenMode::eSCREENMODE_vblank:
-        printf("OAM mode\n");
-        m_screenMode = ScreenMode::eSCREENMODE_oamsearch;
-        break;
+    case ScreenMode::eSCREENMODE_vblank: m_screenMode = ScreenMode::eSCREENMODE_oamsearch; break;
     }
 }
 
@@ -114,7 +111,9 @@ void Ppu::enterHBlankPeriod(const uint32_t currentCPUCycle)
     if (((currentCPUCycle - m_lastCPUCycle) / 4) == LCDTiming::eLCDTIME_hblank)
     {
         m_lastCPUCycle = currentCPUCycle;
+
         ++m_currentScanLine;
+
         switchState();
     }
 }
@@ -123,14 +122,18 @@ void Ppu::enterHBlankPeriod(const uint32_t currentCPUCycle)
 
 void Ppu::enterVBlankPeriod(const uint32_t currentCPUCycle)
 {
-    if (((currentCPUCycle - m_lastCPUCycle) / 4) == LCDTiming::eLCDTIME_vblank)
+    // if (((currentCPUCycle - m_lastCPUCycle) / 4) == LCDTiming::eLCDTIME_vblank)
+    if ((((currentCPUCycle - m_lastCPUCycle) / 4) % LCDTiming::eLCDTIME_onelinerender) == 0)
+    {
+        m_lastCPUCycle = currentCPUCycle;
+        ++m_currentScanLine;
+    }
+
+    if (m_currentScanLine > 153)
     {
         m_lastCPUCycle = currentCPUCycle;
         m_currentScanLine = 0;
+
         switchState();
-    }
-    else if ((((currentCPUCycle - m_lastCPUCycle) / 4) % eLCDTIME_onelinerender) == 0)
-    {
-        ++m_currentScanLine;
     }
 }
