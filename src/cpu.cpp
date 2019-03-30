@@ -254,7 +254,6 @@ bool Cpu::cycle()
     if (m_cpuCycles == GBConfig::clockFrequency)
     {
         m_cpuCycles = 0;
-        exit(404);
     }
     m_cpuCycles += 4;
 
